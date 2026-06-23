@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArcPredict - WC2026 Prediction Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Ethers.js v6 CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      // Global resilience shield for cross-origin CDN and script issues
+      window.onerror = function(message, source, lineno, colno, error) {
+        console.warn("Shielded global runtime environment notice:", message, "source:", source);
+        try {
+          const msgStr = String(message || "").toLowerCase();
+          if (msgStr.includes("script error") || msgStr.includes("ethereum") || msgStr.includes("provider") || msgStr.includes("metamask") || msgStr.includes("null")) {
+            return true; // Gracefully absorb cross-origin wrapper noise or unhandled iframe exceptions
+          }
+        } catch (e) {
+          console.error("Error in global shield:", e);
+        }
+        return false;
+      };
+    </script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #040214; /* Deep dark blue background */
+        color: #d8b4fe; /* Light purple for high contrast text */
+      }
+      .font-display {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+      /* Custom scrollbar styling for terminal logs */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #0c092a;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #8b5cf6;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #a78bfa;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-[#040214] selection:bg-purple-500 selection:text-white flex flex-col justify-between text-purple-100">
+
+    <!-- Beautiful Custom Notification Alert Modal -->
+    <div id="custom-alert-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
+      <div class="bg-[#120e36] rounded-xl shadow-2xl border-2 border-purple-500 w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-5 flex gap-3.5">
+          <div id="custom-alert-icon" class="w-10 h-10 rounded-full bg-purple-950/40 text-purple-300 flex items-center justify-center shrink-0 border border-purple-800/60">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          </div>
+          <div class="space-y-1">
+            <h3 id="custom-alert-title" class="font-display font-bold text-purple-100 text-sm">Prediction Portal</h3>
+            <p id="custom-alert-body" class="text-xs text-purple-300 leading-normal whitespace-pre-line"></p>
+          </div>
+        </div>
+        <div class="bg-purple-950/20 px-5 py-3 flex justify-end gap-2 border-t border-purple-900/40">
+          <button id="custom-alert-close-btn" class="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-lg transition-all active:scale-95 cursor-pointer select-none">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Clean Navigation Bar -->
+    <nav class="h-16 flex-shrink-0 bg-[#0c092c]/80 backdrop-blur-md border-b border-purple-900/50 px-6 flex items-center justify-between sticky top-0 z-50 shadow-xs">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 hover:scale-[1.02] transition-transform duration-300">
+          <svg class="w-8 h-8 shrink-0 select-none drop-shadow-[0_0_8px_rgba(139,92,246,0.15)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="logo-metal-silver" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#a78bfa"/>
+                <stop offset="40%" stop-color="#8b5cf6"/>
+                <stop offset="85%" stop-color="#7c3aed"/>
+                <stop offset="100%" stop-color="#4c1d95"/>
+              </linearGradient>
+            </defs>
+            <!-- Sleek Symmetrical Arch shape forming stylish 'A' inspired by user logo -->
+            <path d="M50 16 C30 16 19 46 17 84 H31.5 C33.5 68 39 31 50 23 C61 31 66.5 68 68.5 84 H83 C81 46 70 16 50 16 Z" fill="url(#logo-metal-silver)" />
+            <!-- Inner cross bar / styled tail matching the visual curve -->
+            <path d="M43 65 C43 65 68 65 68 70 C68 75 57 76 43 76 Z" fill="url(#logo-metal-silver)" />
+          </svg>
+        </div>
+        <h1 class="text-base md:text-lg font-black tracking-tight font-display text-purple-100">
+          ARC<span class="text-purple-400">PREDICT</span>
+        </h1>
+        <div class="hidden sm:block ml-4 px-2.5 py-1 bg-purple-950/40 text-[9px] font-mono font-bold text-purple-300 rounded-full border border-purple-800/60 tracking-wider">
+          ARC TESTNET PITCH
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 px-3.5 py-1.5 bg-purple-950/40 border border-purple-900/60 rounded-full text-xs font-medium">
+          <span class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.6)]"></span>
+          <span id="usdc-balance" class="text-purple-300 font-mono font-bold">0.00 USDC</span>
+        </div>
+        <button id="connect-wallet-btn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-bold tracking-tight transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(139,92,246,0.2)] border border-purple-400/20">
+          <i data-lucide="power" class="w-3.5 h-3.5 text-white"></i> Connect Wallet
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Clean Container Workspace -->
+    <div class="max-w-7xl mx-auto w-full px-6 py-8 space-y-8 flex-grow">
+      
+      <!-- Sleek Dynamic Creator and Testnet Alert Banner -->
+      <div class="bg-gradient-to-r from-purple-950 to-indigo-950 border border-purple-800/40 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-300">
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <div class="w-10 h-10 rounded-full bg-purple-900/80 border border-purple-500/40 flex items-center justify-center shrink-0 text-purple-300 shadow-[0_0_10px_rgba(167,139,250,0.2)]">
+            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs md:text-sm text-purple-100 font-medium leading-relaxed">
+              The prediction market is created by <a href="https://x.com/iblamehsan" target="_blank" rel="noopener noreferrer" class="text-purple-300 hover:text-purple-200 font-extrabold underline transition-all inline-flex items-center gap-1 hover:scale-[1.02] active:scale-95">ehsan
+                <svg class="w-3.5 h-3.5 inline-block" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+            </p>
+            <p class="text-[10px] text-purple-400 font-mono mt-0.5 tracking-wider uppercase">
+              Stadium Arena Creator Verification Profile Active
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3.5 bg-[#120e2e]/90 border border-purple-800/60 px-4 py-2.5 rounded-lg w-full md:w-auto justify-start select-none">
+          <div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_#fbbf24]"></div>
+          <div class="text-left font-sans">
+            <div class="text-[9px] text-purple-300 font-bold uppercase tracking-widest leading-none">Testing Notification</div>
+            <div class="text-xs text-white font-medium mt-1 leading-normal">
+              Please use a new wallet to test. Faucet: <a href="https://faucet.circle.com" target="_blank" rel="noopener noreferrer" class="text-purple-300 hover:text-purple-200 font-bold underline cursor-pointer hover:underline-offset-2 transition-all">Faucet.circle.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Clean Minimal Branding Hero -->
+      <div id="app-hero" class="flex flex-col md:flex-row md:items-center md:justify-between border-b border-purple-900/50 pb-6 gap-4">
+        <div>
+          <span class="text-xs font-bold tracking-widest text-purple-400 uppercase font-display flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-ping"></span> World Cup 2026 Matchday 3 Arena
+          </span>
+          <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight text-purple-100 font-display mt-0.5">
+            ArcPredict Stadium
+          </h1>
+          <p class="text-purple-300 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">
+            Execute single-click predictions of exactly <span class="text-purple-300 font-semibold font-mono bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/60">1.00 USDC</span> on match outcomes. Supported by automated Double-signature (Approve + Bet) instantly on-chain.
+          </p>
+        </div>
+        
+        <!-- Summary Stats Board -->
+        <div class="flex items-center gap-3 bg-[#120e36] border border-purple-900/60 p-4 rounded-xl shadow-xs">
+          <div class="p-2 bg-purple-950/40 border border-purple-800/60 rounded-lg text-purple-400">
+            <i data-lucide="award" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-[10px] uppercase font-bold tracking-wider text-purple-400 font-mono">Arena Markets</div>
+            <div class="text-base font-bold text-purple-200 font-display">24 Live Fixtures</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings & RPC Workspace System Blocks -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- RPC & Wallet Info Block -->
+        <div class="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <!-- Connection Status Info -->
+          <div class="bg-[#120e36] border border-purple-900/60 p-5 rounded-xl shadow-xs hover:border-purple-800/85 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3 pb-2 border-b border-purple-900/40">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-purple-300 font-display flex items-center gap-1.5">
+                  <i data-lucide="wallet" class="w-3.5 h-3.5 text-purple-400"></i> Wallet Status
+                </h2>
+                <span id="connection-badge" class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-red-950/60 text-red-400 border border-red-900/50">
+                  Disconnected
+                </span>
+              </div>
+              
+              <div class="space-y-2 text-xs">
+                <div class="flex justify-between items-center bg-purple-950/40 p-2.5 rounded border border-purple-900/40 text-purple-300">
+                  <span class="text-purple-400 font-medium">Address</span>
+                  <span id="wallet-address" class="text-purple-100 font-mono font-bold truncate max-w-[140px]" title="Not Connected">Not Connected</span>
+                </div>
+                <div class="flex justify-between items-center bg-purple-950/40 p-2.5 rounded border border-purple-900/40 text-purple-300">
+                  <span class="text-purple-400 font-medium">Target Network</span>
+                  <span id="target-net-name" class="text-purple-300 font-semibold font-mono">Arc Testnet</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex gap-2">
+              <button id="refresh-balance-btn" class="bg-purple-900/40 hover:bg-purple-900/60 border border-purple-800/60 text-purple-300 p-2 rounded-lg transition flex items-center justify-center active:scale-95 cursor-pointer text-xs font-semibold gap-1.5" title="Refresh Wallet Status">
+                <i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-purple-400"></i> Refresh Balance
+              </button>
+            </div>
+          </div>
+
+          <!-- RPC Network Switcher Helper -->
+          <div class="bg-[#120e36] border border-purple-900/60 p-5 rounded-xl shadow-xs hover:border-purple-800/85 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3 pb-2 border-b border-purple-900/40">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-purple-300 font-display flex items-center gap-1.5">
+                  <i data-lucide="globe" class="w-3.5 h-3.5 text-purple-400"></i> Custom RPC Settings
+                </h2>
+                <button id="switch-network-btn" class="text-[10px] text-purple-400 font-bold hover:text-purple-300 transition cursor-pointer flex items-center gap-1">
+                  <i data-lucide="plus-circle" class="w-2.5 h-2.5"></i> Add Chain to MetaMask
+                </button>
+              </div>
+              <div class="bg-purple-950/40 p-3 rounded-lg border border-purple-900/40 space-y-1 text-[11px] font-mono text-purple-300">
+                <div class="flex justify-between"><span class="text-purple-450">RPC URL</span><span id="info-rpc" class="text-purple-100 font-semibold truncate max-w-[150px]">https://rpc.testnet.arc.network</span></div>
+                <div class="flex justify-between"><span class="text-purple-450">Chain ID</span><span id="info-chain" class="text-purple-100 font-semibold">5042002 (0x4CE81A)</span></div>
+                <div class="flex justify-between"><span class="text-purple-450">Native Asset</span><span class="text-purple-300 font-bold">USDC</span></div>
+              </div>
+            </div>
+            
+            <p class="text-[10px] text-purple-400 leading-tight mt-2 flex items-center gap-1">
+              <i data-lucide="info" class="w-3 h-3 text-purple-400"></i> Auto-detection updates active chain automatically upon user switch in MetaMask.
+            </p>
+          </div>
+
+          <!-- Prediction History Box -->
+          <div class="bg-[#120e36] border border-purple-900/60 p-5 rounded-xl shadow-xs hover:border-purple-800/85 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3 pb-2 border-b border-purple-900/40">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-purple-300 font-display flex items-center gap-1.5">
+                  <i data-lucide="history" class="w-3.5 h-3.5 text-purple-400"></i> Prediction History
+                </h2>
+                <button id="clear-history-btn" class="text-[10px] text-purple-400 font-bold hover:text-purple-300 transition cursor-pointer flex items-center gap-1">
+                  <i data-lucide="trash-2" class="w-2.5 h-2.5"></i> Clear
+                </button>
+              </div>
+              
+              <!-- History List Container -->
+              <div id="history-list" class="space-y-2 max-h-[140px] overflow-y-auto custom-scrollbar pr-1">
+                <!-- Injected dynamically via JS -->
+                <div class="text-center py-6 text-purple-400 text-xs">
+                  No predictions yet.
+                </div>
+              </div>
+            </div>
+            
+            <p class="text-[10px] text-purple-400 leading-tight mt-2 flex items-center gap-1">
+              <i data-lucide="info" class="w-3 h-3 text-purple-400"></i> Records are saved locally in your browser.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Global Parameter Configurations (Kept in background DOM per user request) -->
+        <div class="lg:col-span-4 hidden" id="hidden-deployments-panel" style="display: none;">
+          <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden h-full flex flex-col justify-between">
+            <div class="p-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider font-display flex items-center gap-1.5">
+                <i data-lucide="sliders" class="w-3.5 h-3.5 text-blue-500"></i> Contract Deployments
+              </h3>
+              <span class="text-[9px] bg-slate-200/60 text-slate-600 font-bold px-1.5 py-0.5 rounded">Config</span>
+            </div>
+            
+            <div class="p-4 space-y-3 flex-1 text-xs">
+              <!-- USDC Contract address config -->
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1" for="usdc-address-input">
+                  USDC Token Address
+                </label>
+                <input id="usdc-address-input" type="text" value="0x3600000000000000000000000000000000000000" class="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:bg-white text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono outline-none transition duration-150">
+              </div>
+
+              <!-- Prediction Contract address config -->
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1" for="prediction-address-input">
+                  Prediction Contract
+                </label>
+                <input id="prediction-address-input" type="text" value="0x15CA7442803AC4D3d04Ce304F4Cb65D160903235" class="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-blue-500 focus:bg-white text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono outline-none transition duration-150">
+              </div>
+
+              <!-- Extra Network inputs (RPC and Chain ID hidden but synchronized dynamically) -->
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1" for="rpc-input">
+                    RPC Endpoint
+                  </label>
+                  <input id="rpc-input" type="text" value="https://rpc.testnet.arc.network" class="w-full bg-slate-50 border border-slate-200 text-slate-700 px-2 py-1 rounded text-[11px] font-mono outline-none">
+                </div>
+                <div>
+                  <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1" for="chain-input">
+                    Chain ID
+                  </label>
+                  <input id="chain-input" type="number" value="5042002" class="w-full bg-slate-50 border border-slate-200 text-slate-700 px-2 py-1 rounded text-[11px] font-mono outline-none">
+                </div>
+              </div>
+
+              <!-- Indexing style selector -->
+              <div class="pt-1">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                  Solidity Match Array Indexing Key
+                </span>
+                <div class="flex gap-4">
+                  <label class="inline-flex items-center text-slate-600 cursor-pointer select-none">
+                    <input type="radio" name="index-model" value="0-based" checked class="text-blue-600 bg-slate-100 border-slate-300 focus:ring-0 mr-1.5">
+                    0-Indexed (0 to 23)
+                  </label>
+                  <label class="inline-flex items-center text-slate-600 cursor-pointer select-none">
+                    <input type="radio" name="index-model" value="1-based" class="text-blue-600 bg-slate-100 border-slate-300 focus:ring-0 mr-1.5">
+                    1-Indexed (1 to 24)
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Dashboard Divider Section -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between border-t border-purple-900/50 pt-6">
+        <div>
+          <h2 class="text-lg font-bold font-display text-purple-100 flex items-center gap-2">
+            🏟️ Forecast Markets guide 
+          </h2>
+          <p class="text-purple-400 text-xs">
+            Stake 1 USDC on outcomes below. Team 1= Team A Wins, Team 2 = Team B Wins, DRAW = Balanced Match.
+          </p>
+        </div>
+        <div class="text-purple-400 text-xs select-none mt-1 md:mt-0 font-mono">
+          Double-signature authorization (Approve + Bet) required.
+        </div>
+      </div>
+
+      <!-- 24 World Cup Matches Predictions Minimalist Grid -->
+      <div id="matches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Injected dynamically via JS loop -->
+        <div class="col-span-full py-16 text-center text-purple-400 bg-[#120e36] border border-purple-900/60 rounded-xl shadow-xs">
+          <div class="inline-block animate-spin w-6 h-6 border-3 border-purple-500/20 border-t-purple-500 rounded-full mb-2"></div>
+          <p class="text-xs font-mono text-purple-300">Compiling correct stadium fixtures dashboard...</p>
+        </div>
+      </div>
+
+      <!-- Clean Web3 Interaction Terminal Logs -->
+      <div class="bg-[#120e2e] border border-purple-900/40 rounded-xl overflow-hidden shadow-lg backdrop-blur-md">
+        <div class="bg-[#1a1444] px-5 py-3 border-b border-purple-900/50 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse shadow-[0_0_8px_#a78bfa]"></span>
+            <span class="text-[10px] font-bold font-mono text-purple-300 uppercase tracking-wider">On-Chain Interaction Monitor</span>
+          </div>
+          <button id="clear-logs-btn" class="bg-purple-900/60 hover:bg-purple-850 border border-purple-700 text-purple-200 px-2.5 py-1 rounded text-[9px] font-mono transition duration-150 uppercase tracking-wider cursor-pointer font-bold">
+            Clear Logs
+          </button>
+        </div>
+        
+        <!-- Logs screen area - Styled neatly -->
+        <div id="terminal-screen" class="p-4 font-mono text-xs space-y-2 h-44 overflow-y-auto custom-scrollbar bg-[#0a071e] text-purple-100">
+          <div class="text-purple-400">[SYSTEM] Initialization completed. Setup correct USDC token properties.</div>
+          <div class="text-purple-400">[SYSTEM] Loaded: 24 active World Cup 2026 match markets.</div>
+          <div class="text-purple-300 font-semibold">[SYSTEM] Awaiting MetaMask wallet activation... Please login above.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Clean Minimalism Footer -->
+    <footer class="bg-[#0c0926] border-t border-purple-900 text-purple-200 py-6 text-xs mt-12">
+      <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-mono opacity-90">
+        <div class="flex flex-col md:flex-row gap-2 md:gap-6 text-center md:text-left">
+          <span>USDC: <span id="footer-usdc-addr" class="text-purple-300">0x3600000000000000000000000000000000000000</span></span>
+          <span class="hidden md:inline text-purple-800">|</span>
+          <span>PREDICTION CONTRACT: <span id="footer-pred-addr" class="text-purple-300">0x15CA7442803AC4D3d04Ce304F4Cb65D160903235</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-1.5">
+            <div class="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
+            <span>NETWORK ACTIVE</span>
+          </div>
+          <span id="status-footer-msg" class="text-purple-300 font-bold">READY FOR PREDICTIONS</span>
+        </div>
+      </div>
+    </footer>
+
+
+    <!-- ==================== WEB3 & LOGIC SCRIPTS ==================== -->
+    <script>
+      // 24 Matches Array (World Cup 2026 Matchday 3) - Corrected 24 Games as explicitly provided
+      const matches = [
+        { id: 1, group: "A", teamA: "Mexico", teamB: "Czechia", logoA: "🇲🇽", logoB: "🇨🇿", oddsYes: "2.10", oddsDraw: "3.20", oddsNo: "2.80", probYes: "41%", probDraw: "28%", probNo: "31%", date: "June 24, 2026" },
+        { id: 2, group: "A", teamA: "South Korea", teamB: "South Africa", logoA: "🇰🇷", logoB: "🇿🇦", oddsYes: "1.85", oddsDraw: "3.10", oddsNo: "3.40", probYes: "46%", probDraw: "29%", probNo: "25%", date: "June 24, 2026" },
+
+        { id: 3, group: "B", teamA: "Switzerland", teamB: "Canada", logoA: "🇨🇭", logoB: "🇨🇦", oddsYes: "1.95", oddsDraw: "3.20", oddsNo: "3.10", probYes: "44%", probDraw: "28%", probNo: "28%", date: "June 24, 2026" },
+        { id: 4, group: "B", teamA: "Bosnia", teamB: "Qatar", logoA: "🇧🇦", logoB: "🇶🇦", oddsYes: "2.10", oddsDraw: "3.10", oddsNo: "2.90", probYes: "41%", probDraw: "29%", probNo: "30%", date: "June 24, 2026" },
+
+        { id: 5, group: "C", teamA: "Brazil", teamB: "Scotland", logoA: "🇧🇷", logoB: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", oddsYes: "1.30", oddsDraw: "4.50", oddsNo: "7.50", probYes: "68%", probDraw: "20%", probNo: "12%", date: "June 25, 2026" },
+        { id: 6, group: "C", teamA: "Morocco", teamB: "Haiti", logoA: "🇲🇦", logoB: "🇭🇹", oddsYes: "1.25", oddsDraw: "4.80", oddsNo: "8.50", probYes: "71%", probDraw: "18%", probNo: "11%", date: "June 25, 2026" },
+
+        { id: 7, group: "D", teamA: "USA", teamB: "Türkiye", logoA: "🇺🇸", logoB: "🇹🇷", oddsYes: "2.05", oddsDraw: "3.20", oddsNo: "2.95", probYes: "42%", probDraw: "28%", probNo: "30%", date: "June 25, 2026" },
+        { id: 8, group: "D", teamA: "Paraguay", teamB: "Australia", logoA: "🇵🇾", logoB: "🇦🇺", oddsYes: "2.45", oddsDraw: "3.10", oddsNo: "2.55", probYes: "36%", probDraw: "29%", probNo: "35%", date: "June 25, 2026" },
+
+        { id: 9, group: "E", teamA: "Germany", teamB: "Ecuador", logoA: "🇩🇪", logoB: "🇪🇨", oddsYes: "1.55", oddsDraw: "3.80", oddsNo: "5.00", probYes: "57%", probDraw: "24%", probNo: "19%", date: "June 25, 2026" },
+        { id: 10, group: "E", teamA: "Curaçao", teamB: "Côte d'Ivoire", logoA: "🇨🇼", logoB: "🇨🇮", oddsYes: "5.20", oddsDraw: "3.90", oddsNo: "1.50", probYes: "17%", probDraw: "23%", probNo: "60%", date: "June 25, 2026" },
+
+        { id: 11, group: "F", teamA: "Netherlands", teamB: "Tunisia", logoA: "🇳🇱", logoB: "🇹🇳", oddsYes: "1.40", oddsDraw: "4.20", oddsNo: "6.50", probYes: "63%", probDraw: "22%", probNo: "15%", date: "June 26, 2026" },
+        { id: 12, group: "F", teamA: "Japan", teamB: "Sweden", logoA: "🇯🇵", logoB: "🇸🇪", oddsYes: "2.22", oddsDraw: "3.20", oddsNo: "2.70", probYes: "39%", probDraw: "28%", probNo: "33%", date: "June 26, 2026" },
+
+        { id: 13, group: "G", teamA: "Belgium", teamB: "New Zealand", logoA: "🇧🇪", logoB: "🇳🇿", oddsYes: "1.22", oddsDraw: "5.00", oddsNo: "9.50", probYes: "73%", probDraw: "17%", probNo: "10%", date: "June 26, 2026" },
+        { id: 14, group: "G", teamA: "Egypt", teamB: "Iran", logoA: "🇪🇬", logoB: "🇮🇷", oddsYes: "2.30", oddsDraw: "3.00", oddsNo: "2.80", probYes: "38%", probDraw: "30%", probNo: "32%", date: "June 26, 2026" },
+
+        { id: 15, group: "H", teamA: "Spain", teamB: "Uruguay", logoA: "🇪🇸", logoB: "🇺🇾", oddsYes: "1.80", oddsDraw: "3.30", oddsNo: "3.80", probYes: "49%", probDraw: "27%", probNo: "24%", date: "June 26, 2026" },
+        { id: 16, group: "H", teamA: "Cape Verde", teamB: "Saudi Arabia", logoA: "🇨🇻", logoB: "🇸🇦", oddsYes: "2.80", oddsDraw: "3.00", oddsNo: "2.30", probYes: "31%", probDraw: "30%", probNo: "39%", date: "June 26, 2026" },
+
+        { id: 17, group: "I", teamA: "France", teamB: "Norway", logoA: "🇫🇷", logoB: "🇳🇴", oddsYes: "1.45", oddsDraw: "4.00", oddsNo: "5.80", probYes: "61%", probDraw: "23%", probNo: "16%", date: "June 27, 2026" },
+        { id: 18, group: "I", teamA: "Senegal", teamB: "Iraq", logoA: "🇸🇳", logoB: "🇮🇶", oddsYes: "1.65", oddsDraw: "3.40", oddsNo: "4.50", probYes: "54%", probDraw: "26%", probNo: "20%", date: "June 27, 2026" },
+
+        { id: 19, group: "J", teamA: "Argentina", teamB: "Jordan", logoA: "🇦🇷", logoB: "🇯🇴", oddsYes: "1.15", oddsDraw: "6.00", oddsNo: "12.00", probYes: "77%", probDraw: "15%", probNo: "8%", date: "June 27, 2026" },
+        { id: 20, group: "J", teamA: "Algeria", teamB: "Austria", logoA: "🇩🇿", logoB: "🇦🇹", oddsYes: "2.50", oddsDraw: "3.10", oddsNo: "2.45", probYes: "35%", probDraw: "29%", probNo: "36%", date: "June 27, 2026" },
+
+        { id: 21, group: "K", teamA: "Portugal", teamB: "Colombia", logoA: "🇵🇹", logoB: "🇨🇴", oddsYes: "1.90", oddsDraw: "3.25", oddsNo: "3.30", probYes: "46%", probDraw: "27%", probNo: "27%", date: "June 27, 2026" },
+        { id: 22, group: "K", teamA: "DR Congo", teamB: "Uzbekistan", logoA: "🇨🇩", logoB: "🇺🇿", oddsYes: "2.60", oddsDraw: "3.00", oddsNo: "2.40", probYes: "34%", probDraw: "30%", probNo: "36%", date: "June 27, 2026" },
+
+        { id: 23, group: "L", teamA: "England", teamB: "Panama", logoA: "🏴\u200d󠁡󠁥󠁮󠁧󠁿", logoB: "🇵🇦", oddsYes: "1.25", oddsDraw: "5.00", oddsNo: "9.00", probYes: "71%", probDraw: "18%", probNo: "11%", date: "June 27, 2026" },
+        { id: 24, group: "L", teamA: "Croatia", teamB: "Ghana", logoA: "🇭🇷", logoB: "🇬🇭", oddsYes: "1.75", oddsDraw: "3.40", oddsNo: "3.90", probYes: "50%", probDraw: "26%", probNo: "24%", date: "June 27, 2026" }
+      ];
+
+      // Contract Human-Readable ABIs
+      const usdcAbi = [
+        "function approve(address spender, uint256 amount) external returns (bool)",
+        "function transfer(address recipient, uint256 amount) external returns (bool)",
+        "function allowance(address owner, address spender) external view returns (uint256)",
+        "function balanceOf(address account) external view returns (uint256)",
+        "function decimals() external view returns (uint8)"
+      ];
+
+      const predictionAbi = [
+        "function betYes(uint256 matchId) external",
+        "function betNo(uint256 matchId) external",
+        "function betDraw(uint256 matchId) external"
+      ];
+
+      // Web3 Application State
+      let connectedAddress = "";
+      let networkChainId = null;
+      let provider = null;
+      let signer = null;
+
+      // Prediction History State
+      let predictionHistory = [];
+      try {
+        const stored = localStorage.getItem("arcpredict_history");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            predictionHistory = parsed;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load prediction history from local storage:", e);
+      }
+
+      // Render prediction history dynamically
+      function renderHistory() {
+        const container = document.getElementById("history-list");
+        if (!container) return;
+
+        if (!Array.isArray(predictionHistory) || predictionHistory.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-6 text-purple-400 text-xs">
+              No predictions yet.
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = "";
+        const sortedHistory = [...predictionHistory].reverse();
+        sortedHistory.forEach((item) => {
+          if (!item) return;
+          const div = document.createElement("div");
+          div.className = "bg-purple-950/40 p-2 rounded border border-purple-900/40 flex justify-between items-center text-[11px] gap-2";
+          
+          const logoA = item.logoA || "🏳️";
+          const logoB = item.logoB || "🏳️";
+          const teamA = item.teamA || "Team A";
+          const teamB = item.teamB || "Team B";
+          const pick = item.pick || "YES";
+          const odds = item.odds || "1.00";
+
+          div.innerHTML = `
+            <div class="flex flex-col min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 font-bold text-purple-200 truncate">
+                <span class="text-xs select-none">${logoA}</span>
+                <span class="truncate">${teamA} vs ${teamB}</span>
+                <span class="text-xs select-none">${logoB}</span>
+              </div>
+              <div class="text-[9px] text-purple-400 flex items-center gap-1.5 mt-0.5 font-mono">
+                <span>Pick: <strong class="text-purple-200">${pick}</strong></span>
+                <span class="text-purple-800">•</span>
+                <span>Odds: <strong class="text-purple-200">${odds}x</strong></span>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[8px] bg-green-950/60 text-green-400 border border-green-900/50 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase tracking-wider">LOCKED</span>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      // Logger Helper
+      function writeLog(message, type = "info") {
+        const terminal = document.getElementById("terminal-screen");
+        const div = document.createElement("div");
+        const timestamp = new Date().toLocaleTimeString();
+        
+        let colorClass = "text-slate-650";
+        if (type === "success") colorClass = "text-emerald-600 font-semibold";
+        if (type === "error") colorClass = "text-red-500 font-semibold";
+        if (type === "system") colorClass = "text-blue-600";
+        if (type === "warning") colorClass = "text-amber-600 font-semibold";
+        if (type === "tx") colorClass = "text-slate-400 font-mono";
+
+        div.className = `${colorClass} py-0.5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-start gap-1`;
+        
+        const timeBadge = document.createElement("span");
+        timeBadge.className = "text-slate-400 font-mono select-none text-[10px] min-w-[75px]";
+        timeBadge.innerText = `[${timestamp}] `;
+        
+        const textSpan = document.createElement("span");
+        textSpan.innerHTML = message;
+        
+        div.appendChild(timeBadge);
+        div.appendChild(textSpan);
+        terminal.appendChild(div);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      // Format wallets
+      function truncateAddress(address) {
+        if (!address) return "";
+        return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+      }
+
+      // Custom Secure Alert System to bypass sandbox iframe window.alert restrictions elegantly
+      function customShowAlert(message, title = "System Notice") {
+        const modal = document.getElementById("custom-alert-modal");
+        const body = document.getElementById("custom-alert-body");
+        const titleEl = document.getElementById("custom-alert-title");
+        const iconContainer = document.getElementById("custom-alert-icon");
+        
+        if (!modal || !body || !titleEl || !iconContainer) {
+          console.warn("Custom alert UI DOM not fully compiled yet:", message);
+          return;
+        }
+
+        body.innerText = message;
+        titleEl.innerText = title;
+        
+        // Dynamically style icon based on error/success keywords
+        const upperMsg = message.toUpperCase();
+        if (upperMsg.includes("SUCCESS") || upperMsg.includes("🎉") || upperMsg.includes("CONGRATULAT")) {
+          iconContainer.className = "w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0";
+          iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M20 6 9 17l-5-5"/></svg>`;
+        } else if (upperMsg.includes("ERROR") || upperMsg.includes("FAIL") || upperMsg.includes("❌") || upperMsg.includes("WRONG") || upperMsg.includes("MISSING")) {
+          iconContainer.className = "w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0";
+          iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>`;
+        } else {
+          iconContainer.className = "w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0";
+          iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`;
+        }
+        
+        modal.classList.remove("hidden");
+      }
+
+      // Override global window.alert with custom modal fallback for complete runtime resilience
+      window.alert = function(msg) {
+        customShowAlert(msg, "Prediction Portal");
+      };
+
+      // Initialize UI on Load
+      document.addEventListener("DOMContentLoaded", () => {
+        try {
+          // Render Icons
+          if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+          }
+          
+          // Populate Matches Loops
+          renderMatches();
+
+          // Render initial prediction history list
+          renderHistory();
+
+          // Safe helper to add listeners check
+          function safeAddListener(id, event, callback) {
+            const el = document.getElementById(id);
+            if (el) {
+              el.addEventListener(event, callback);
+            }
+          }
+
+          // Connect Button Hookup
+          safeAddListener("connect-wallet-btn", "click", connectWallet);
+          safeAddListener("refresh-balance-btn", "click", refreshBalance);
+          safeAddListener("switch-network-btn", "click", switchOrAddNetwork);
+          safeAddListener("clear-logs-btn", "click", () => {
+            const term = document.getElementById("terminal-screen");
+            if (term) {
+              term.innerHTML = `<div class="text-slate-400">[SYSTEM] Logs cleared. Awaiting Web3 triggers.</div>`;
+            }
+          });
+          safeAddListener("custom-alert-close-btn", "click", () => {
+            const modal = document.getElementById("custom-alert-modal");
+            if (modal) {
+              modal.classList.add("hidden");
+            }
+          });
+
+          // Bind clear history action
+          safeAddListener("clear-history-btn", "click", () => {
+            predictionHistory = [];
+            localStorage.setItem("arcpredict_history", JSON.stringify(predictionHistory));
+            renderHistory();
+            writeLog("[SYSTEM] Prediction history cleared locally.", "system");
+          });
+
+          // Setup real-time updates for input changes
+          safeAddListener("rpc-input", "input", (e) => {
+            const infoRpc = document.getElementById("info-rpc");
+            if (infoRpc) {
+              infoRpc.innerText = e.target.value;
+            }
+          });
+          safeAddListener("chain-input", "input", (e) => {
+            const infoChain = document.getElementById("info-chain");
+            if (infoChain) {
+              infoChain.innerText = `${e.target.value} (0x${parseInt(e.target.value).toString(16).toUpperCase()})`;
+            }
+          });
+
+          // Setup real-time updates for document config labels
+          safeAddListener("usdc-address-input", "input", (e) => {
+            const footerUsdc = document.getElementById("footer-usdc-addr");
+            if (footerUsdc) {
+              footerUsdc.innerText = e.target.value;
+            }
+          });
+          safeAddListener("prediction-address-input", "input", (e) => {
+            const footerPred = document.getElementById("footer-pred-addr");
+            if (footerPred) {
+              footerPred.innerText = e.target.value;
+            }
+          });
+
+          // Handle window.ethereum chain and account change triggers if available and supportive
+          try {
+            if (typeof window !== 'undefined' && window.ethereum && typeof window.ethereum.on === 'function') {
+              window.ethereum.on('accountsChanged', (accounts) => {
+                writeLog(`[METAMASK] User switched accounts to: ${accounts[0] || 'None'}`, "warning");
+                handleAccountsUpdate(accounts);
+              });
+              window.ethereum.on('chainChanged', (chainIdHex) => {
+                const decChain = parseInt(chainIdHex, 16);
+                writeLog(`[METAMASK] Active chain changed to: ${decChain} (${chainIdHex})`, "warning");
+                handleChainUpdate(decChain);
+              });
+            }
+          } catch (ethErr) {
+            console.warn("Metamask listeners registration ignored due to sandbox restriction:", ethErr);
+          }
+        } catch (domErr) {
+          console.error("Initialization process halted with exception:", domErr);
+        }
+      });
+
+      // Render the 24 football matches into the clean minimalist grid
+      function renderMatches() {
+        const grid = document.getElementById("matches-grid");
+        grid.innerHTML = ""; // Clear existing placeholder HTML
+
+        matches.forEach((match) => {
+          // Creating the main wrapper element
+          const card = document.createElement("div");
+          card.id = `match-card-${match.id}`;
+          card.className = "bg-[#120e36] border border-purple-900/60 rounded-xl p-4 flex flex-col justify-between hover:border-purple-500 transition-all duration-150 hover:shadow-[0_0_20px_rgba(139,92,246,0.25)] relative overflow-hidden";
+          
+          // Split Flag Background Layout (No white, half Team A flag, half Team B flag)
+          const flagBackground = `
+            <div class="absolute inset-0 pointer-events-none flex select-none overflow-hidden rounded-xl" style="z-index: 0;">
+              <!-- Left Half Team A Flag -->
+              <div class="w-1/2 h-full flex items-center justify-end overflow-hidden opacity-[0.08] scale-[1.7] origin-right pr-1">
+                <span class="text-[120px] leading-none filter blur-[0.5px] select-none">${match.logoA}</span>
+              </div>
+              <!-- Right Half Team B Flag -->
+              <div class="w-1/2 h-full flex items-center justify-start overflow-hidden opacity-[0.08] scale-[1.7] origin-left pl-1">
+                <span class="text-[120px] leading-none filter blur-[0.5px] select-none">${match.logoB}</span>
+              </div>
+            </div>
+          `;
+
+          // Render Match Header
+          const topBar = `
+            <div class="relative z-10 flex justify-between items-center mb-2.5">
+              <span class="text-[9px] font-bold text-purple-400 uppercase tracking-widest">Match #${match.id}</span>
+              <span class="text-[9px] bg-purple-950/80 border border-purple-800/60 px-2 py-0.5 rounded text-purple-300 font-bold uppercase tracking-wider">Group ${match.group}</span>
+            </div>
+          `;
+
+          // Teams visualization Layout
+          const bodyPanel = `
+            <div class="relative z-10 space-y-2 mb-3.5 flex-grow">
+              
+              <!-- Team A Info Row -->
+              <div class="flex justify-between items-center bg-purple-950/40 p-2.5 rounded-lg border border-purple-900/40 backdrop-blur-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-base" role="img" aria-label="${match.teamA}">${match.logoA}</span>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-purple-100 tracking-tight leading-normal">${match.teamA}</span>
+                    <span class="text-[9px] text-purple-400 font-bold select-none leading-none">Win: ${match.oddsYes} USDC</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] font-bold font-mono text-purple-300 block">Odds ${match.oddsYes}</span>
+                  <span class="text-[9px] text-purple-400 block">${match.probYes} prob</span>
+                </div>
+              </div>
+
+              <!-- Draw Row -->
+              <div class="flex justify-between items-center bg-indigo-950/30 px-2.5 py-1.5 rounded-lg border border-dashed border-purple-900/40 backdrop-blur-xs">
+                <div class="flex items-center gap-2">
+                  <div class="flex flex-col">
+                    <span class="text-xs text-purple-300 font-bold tracking-wider font-mono leading-normal">DRAW</span>
+                    <span class="text-[9px] text-purple-400 font-bold select-none leading-none">Win: ${match.oddsDraw} USDC</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] font-bold font-mono text-purple-400 block">Odds ${match.oddsDraw}</span>
+                  <span class="text-[9px] text-purple-500 block">${match.probDraw} prob</span>
+                </div>
+              </div>
+
+              <!-- Team B Info Row -->
+              <div class="flex justify-between items-center bg-purple-950/40 p-2.5 rounded-lg border border-purple-900/40 backdrop-blur-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-base" role="img" aria-label="${match.teamB}">${match.logoB}</span>
+                  <div class="flex flex-col">
+                    <span class="text-xs font-bold text-purple-100 tracking-tight leading-normal">${match.teamB}</span>
+                    <span class="text-[9px] text-purple-400 font-bold select-none leading-none">Win: ${match.oddsNo} USDC</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="text-[10px] font-bold font-mono text-purple-300 block">Odds ${match.oddsNo}</span>
+                  <span class="text-[9px] text-purple-400 block">${match.probNo} prob</span>
+                </div>
+              </div>
+
+            </div>
+          `;
+
+          // Interactive Action Buttons including Draw betting option
+          const footerPanel = `
+            <div class="relative z-10 space-y-1.5 align-bottom">
+              <div class="grid grid-cols-3 gap-1">
+                
+                <!-- YES (TEAM A) BUTTON -->
+                <button 
+                  onclick="placeOnChainBet(${match.id}, 'YES')"
+                  id="btn-yes-${match.id}" 
+                  class="py-1.5 bg-purple-700 hover:bg-purple-600 text-purple-100 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight border border-purple-500/30"
+                  title="Bet on ${match.teamA}. Will return ${match.oddsYes} USDC."
+                >
+                  <span class="block font-extrabold truncate w-full px-1 text-center">${match.teamA}</span>
+                  <span class="block text-[8px] text-purple-300 font-semibold leading-none font-mono mt-0.5">${match.oddsYes}x</span>
+                </button>
+
+                <!-- DRAW BUTTON -->
+                <button 
+                  onclick="placeOnChainBet(${match.id}, 'DRAW')"
+                  id="btn-draw-${match.id}" 
+                  class="py-1.5 bg-[#1b154c] hover:bg-[#251e62] border border-purple-800/60 text-purple-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight"
+                  title="Bet on DRAW. Will return ${match.oddsDraw} USDC."
+                >
+                  <span class="block font-extrabold truncate w-full px-1 text-center">DRAW</span>
+                  <span class="block text-[8px] text-purple-400 font-normal leading-none font-mono mt-0.5">${match.oddsDraw}x</span>
+                </button>
+
+                <!-- NO (TEAM B) BUTTON -->
+                <button 
+                  onclick="placeOnChainBet(${match.id}, 'NO')"
+                  id="btn-no-${match.id}" 
+                  class="py-1.5 bg-transparent border border-purple-800/80 hover:bg-purple-950/45 text-purple-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight"
+                  title="Bet on ${match.teamB}. Will return ${match.oddsNo} USDC."
+                >
+                  <span class="block font-extrabold truncate w-full px-1 text-center">${match.teamB}</span>
+                  <span class="block text-[8px] text-purple-400 font-normal leading-none font-mono mt-0.5">${match.oddsNo}x</span>
+                </button>
+
+              </div>
+              <div class="text-[9px] text-center text-purple-400 font-mono select-none">
+                Kickoff: <span class="text-purple-300 font-sans">${match.date}</span>
+              </div>
+            </div>
+          `;
+
+          card.innerHTML = flagBackground + topBar + bodyPanel + footerPanel;
+          grid.appendChild(card);
+        });
+      }
+
+      // Web3 Connecting MetaMask Method
+      async function connectWallet() {
+        writeLog("[METAMASK] Connect request initiated...", "system");
+        
+        if (!window.ethereum) {
+          writeLog("[ERROR] MetaMask Web3 extension not found in browser! Please open in MetaMask environment.", "error");
+          alert("MetaMask extension is missing. Please install MetaMask to use this Web3 Application.");
+          return;
+        }
+
+        try {
+          // Requesting chain activation
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          writeLog("[METAMASK] Authorization confirmed by user.", "success");
+          
+          // Setup modern provider & signers
+          provider = new ethers.BrowserProvider(window.ethereum);
+          signer = await provider.getSigner();
+          
+          handleAccountsUpdate(accounts);
+
+          // Check chain configuration
+          const net = await provider.getNetwork();
+          const activeChainId = Number(net.chainId);
+          handleChainUpdate(activeChainId);
+
+          // Get USDC Balance check
+          await refreshBalance();
+
+        } catch (error) {
+          console.error(error);
+          writeLog(`[ERROR] Connection failed: ${error.message || error}`, "error");
+        }
+      }
+
+      // Handle updating account labels
+      function handleAccountsUpdate(accounts) {
+        if (accounts && accounts.length > 0) {
+          connectedAddress = accounts[0];
+          document.getElementById("wallet-address").innerText = truncateAddress(connectedAddress);
+          document.getElementById("wallet-address").title = connectedAddress;
+          
+          // Update connection graphic state badges
+          const badge = document.getElementById("connection-badge");
+          badge.innerText = "Connected";
+          badge.className = "px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-green-950/60 text-green-400 border border-green-900/50";
+          
+          // Connect Button transformation
+          const btn = document.getElementById("connect-wallet-btn");
+          btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> Connected`;
+          btn.className = "bg-purple-950/60 text-purple-300 hover:bg-purple-900/40 px-4 py-2 rounded-lg text-xs font-semibold tracking-tight transition-all border border-purple-800/40 flex items-center gap-2 select-none pointer-events-none";
+          if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+          }
+          
+          writeLog(`[WALLET] Logged in account: <strong>${connectedAddress}</strong>`, "success");
+        } else {
+          connectedAddress = "";
+          document.getElementById("wallet-address").innerText = "Not Connected";
+          document.getElementById("wallet-address").removeAttribute('title');
+          
+          // Re-enable Connect button
+          const badge = document.getElementById("connection-badge");
+          badge.innerText = "Disconnected";
+          badge.className = "px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-red-950/60 text-red-400 border border-red-900/50";
+          
+          const btn = document.getElementById("connect-wallet-btn");
+          btn.innerHTML = `<i data-lucide="power" class="w-3.5 h-3.5"></i> Connect Wallet`;
+          btn.className = "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-bold tracking-tight transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(139,92,246,0.2)] border border-purple-400/20";
+          if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+          }
+
+          document.getElementById("usdc-balance").innerText = "0.00 USDC";
+        }
+      }
+
+      // Handle chain network confirmation updates
+      function handleChainUpdate(chainId) {
+        networkChainId = chainId;
+        const enteredChain = parseInt(document.getElementById("chain-input").value);
+        
+        writeLog(`[NETWORK] Connected to Chain ID: <span class="font-mono">${chainId}</span> (Target: ${enteredChain})`, "info");
+        
+        const footerStatus = document.getElementById("status-footer-msg");
+        if (chainId === enteredChain) {
+          document.getElementById("target-net-name").className = "text-green-400 font-semibold";
+          document.getElementById("target-net-name").innerText = "Arc Testnet (Active)";
+          footerStatus.innerText = "READY FOR PREDICTIONS";
+          footerStatus.className = "text-purple-300 font-bold";
+          writeLog("[NETWORK] Chain validated successfully. Ready for transactions on Arc Testnet.", "success");
+        } else {
+          document.getElementById("target-net-name").className = "text-amber-400 font-bold uppercase animate-pulse";
+          document.getElementById("target-net-name").innerText = "WRONG CHAIN ID";
+          footerStatus.innerText = "WRONG CHAIN DETECTED";
+          footerStatus.className = "text-amber-400 font-bold uppercase animate-pulse";
+          writeLog(`[WARNING] Your wallet is currently connected to Chain ID ${chainId}. The configured network requires Chain ID ${enteredChain}. Please Switch Chain above.`, "warning");
+        }
+      }
+
+      // Switching or Auto-add custom RPC of Arc testnet
+      async function switchOrAddNetwork() {
+        if (!window.ethereum) {
+          writeLog("[ERROR] MetaMask not found to perform chain configurations.", "error");
+          alert("MetaMask missing.");
+          return;
+        }
+
+        const targetChainId = parseInt(document.getElementById("chain-input").value);
+        const rpcUrl = document.getElementById("rpc-input").value;
+        const targetHex = "0x" + targetChainId.toString(16);
+
+        writeLog(`[METAMASK] Requesting chain switch to Chain ID ${targetChainId} (${targetHex})...`, "system");
+
+        try {
+          // Attempting switch
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: targetHex }],
+          });
+          writeLog(`[METAMASK] Switched chain network state successfully to Chain ID ${targetChainId}.`, "success");
+        } catch (switchError) {
+          // If network doesn't exist on MetaMask, prompt to ADD it!
+          if (switchError.code === 4902) {
+            writeLog("[METAMASK] Chain not configured yet in your wallet. Trying to add Arc Testnet custom RPC configuration...", "warning");
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: targetHex,
+                    chainName: 'Arc Testnet',
+                    nativeCurrency: {
+                      name: 'USDC',
+                      symbol: 'USDC',
+                      decimals: 18
+                    },
+                    rpcUrls: [rpcUrl],
+                    blockExplorerUrls: ['https://testnet.arcscan.app']
+                  }
+                ]
+              });
+              writeLog("[METAMASK] Custom network configuration added and activated successfully!", "success");
+            } catch (addError) {
+              writeLog(`[ERROR] Failed to add custom network chain: ${addError.message || addError}`, "error");
+            }
+          } else {
+            writeLog(`[ERROR] Failed to switch networks: ${switchError.message || switchError}`, "error");
+          }
+        }
+      }
+
+      // Query balance of USDC on ERC20 address
+      async function refreshBalance() {
+        if (!connectedAddress || !provider) {
+          writeLog("[BALANCE] Cannot refresh balance: wallet is not connected.", "warning");
+          return;
+        }
+
+        const usdcAddress = document.getElementById("usdc-address-input").value.trim();
+        writeLog(`[ERC20] Querying USDC Balance on address: <span class="font-mono">${usdcAddress}</span>`, "system");
+
+        let tokenDecimals = 18;
+        let tokenBalFormatted = "0.00";
+        let tokenQuerySucceeded = false;
+
+        try {
+          const contract = new ethers.Contract(usdcAddress, usdcAbi, provider);
+          
+          // Query decimals
+          try {
+            const decVal = await contract.decimals();
+            tokenDecimals = Number(decVal);
+            writeLog(`[ERC20] Dynamically detected Token Decimals: <strong>${tokenDecimals}</strong>`, "info");
+          } catch (decErr) {
+            writeLog(`[ERC20] Decimals query failed (contract might not support decimals()). Defaulting to 18 decimals for Arc space fallback...`, "warning");
+            tokenDecimals = 18;
+          }
+
+          const rawBal = await contract.balanceOf(connectedAddress);
+          tokenBalFormatted = parseFloat(ethers.formatUnits(rawBal, tokenDecimals)).toFixed(2);
+          tokenQuerySucceeded = true;
+          writeLog(`[ERC20] Token balance retrieved: <strong class="text-slate-800">${tokenBalFormatted} USDC</strong>`, "success");
+        } catch (error) {
+          console.error(error);
+          writeLog(`[ERROR] Token Balance query failed. Output: ${error.message || error}`, "error");
+          tokenBalFormatted = "Error";
+        }
+
+        // Also fetch Native Gas Balance (which is USDC on Arc Testnet)
+        let nativeBalFormatted = "";
+        try {
+          const rawNativeBal = await provider.getBalance(connectedAddress);
+          const nativeBal = parseFloat(ethers.formatEther(rawNativeBal)).toFixed(2);
+          nativeBalFormatted = nativeBal;
+          writeLog(`[NATIVE] Native gas balance (USDC): <strong>${nativeBal} USDC</strong>`, "success");
+        } catch (nativeErr) {
+          console.error(nativeErr);
+        }
+
+        // Update display text nicely
+        const displayEl = document.getElementById("usdc-balance");
+        if (displayEl) {
+          let htmlResult = "";
+          if (tokenQuerySucceeded) {
+            htmlResult += `<span class="text-slate-700 font-bold" title="ERC20 Token Balance">${tokenBalFormatted} Token</span>`;
+          } else {
+            htmlResult += `<span class="text-red-500 font-bold text-[10px]" title="Token Query Error">Token Err</span>`;
+          }
+
+          if (nativeBalFormatted !== "") {
+            htmlResult += ` <span class="text-slate-400 mx-1">|</span> <span class="text-blue-600 font-semibold text-[10px]" title="Native Gas Balance">Gas: ${nativeBalFormatted} USDC</span>`;
+          }
+          
+          displayEl.innerHTML = htmlResult;
+        }
+      }
+
+      // Helper function to safely parse Units based on Ethers loaded API
+      function safeParseUnits(valStr, decimals) {
+        if (typeof ethers !== 'undefined' && ethers) {
+          if (typeof ethers.parseUnits === 'function') {
+            return ethers.parseUnits(valStr, decimals);
+          }
+          if (ethers.utils && typeof ethers.utils.parseUnits === 'function') {
+            return ethers.utils.parseUnits(valStr, decimals);
+          }
+        }
+        // Fallback standard implementation
+        const factor = 10 ** decimals;
+        return BigInt(Math.floor(parseFloat(valStr) * factor));
+      }
+
+      // Core Two-Step Transactions Engine - Place On-Chain Predictions
+      async function placeOnChainBet(matchId, pick) {
+        const footerStatus = document.getElementById("status-footer-msg");
+        
+        // Validation Checks
+        if (!connectedAddress) {
+          writeLog("[WARNING] Wallet connection required. Click 'Connect Wallet' at the top first.", "warning");
+          alert("Please connect your MetaMask wallet first!");
+          return;
+        }
+
+        const enteredChain = parseInt(document.getElementById("chain-input").value);
+        if (networkChainId !== enteredChain) {
+          writeLog(`[ERROR] Incorrect network! Please switch MetaMask to Chain ID ${enteredChain} before betting.`, "error");
+          alert(`Wrong network. Please switch to Chain ID ${enteredChain} in MetaMask!`);
+          return;
+        }
+
+        // Retrieve dynamic input settings values
+        const usdcAddress = (document.getElementById("usdc-address-input")?.value || "0x3600000000000000000000000000000000000000").trim();
+        const predictionAddress = (document.getElementById("prediction-address-input")?.value || "0x15CA7442803AC4D3d04Ce304F4Cb65D160903235").trim();
+        const indexingModel = (document.querySelector('input[name="index-model"]:checked') || { value: "0-based" }).value;
+
+        // Visual match detail reference
+        const match = matches.find(m => m.id === matchId);
+        if (!match) {
+          writeLog(`[ERROR] Match not found for ID: ${matchId}`, "error");
+          return;
+        }
+        const teamName = (pick === "YES") ? match.teamA : (pick === "NO" ? match.teamB : "Draw");
+        
+        // Compute correct Match Index parameter depending on Selected Model (0-indexed or 1-indexed)
+        let processedMatchId = matchId;
+        if (indexingModel === "0-based") {
+          // If 0-indexed, Match 1 becomes Index 0, Match 24 becomes Index 23
+          processedMatchId = matchId - 1;
+        }
+
+        writeLog(`[BET TRANSACTION] Commencing transaction workflow for Match #${matchId} (${match.teamA} vs ${match.teamB}). Picked Option: <strong>${pick}</strong> (${teamName})`, "system");
+        
+        // UI footer status update
+        if (footerStatus) {
+          footerStatus.innerText = `PROCESSING MATCH #${matchId}`;
+          footerStatus.className = "text-purple-300 font-bold";
+        }
+
+        // UI buttons spinner state activation
+        const yesBtn = document.getElementById(`btn-yes-${matchId}`);
+        const drawBtn = document.getElementById(`btn-draw-${matchId}`);
+        const noBtn = document.getElementById(`btn-no-${matchId}`);
+        
+        const originalYesHtml = yesBtn ? yesBtn.innerHTML : "";
+        const originalDrawHtml = drawBtn ? drawBtn.innerHTML : "";
+        const originalNoHtml = noBtn ? noBtn.innerHTML : "";
+
+        // Disable and update visual feedback safely
+        if (yesBtn) yesBtn.disabled = true;
+        if (drawBtn) drawBtn.disabled = true;
+        if (noBtn) noBtn.disabled = true;
+        
+        if (pick === "YES" && yesBtn) {
+          yesBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Appr...`;
+          yesBtn.className = "py-1.5 bg-purple-900 text-purple-300 text-[10px] font-bold rounded-lg transition-all pointer-events-none select-none flex flex-col items-center justify-center border border-purple-500/20";
+        } else if (pick === "DRAW" && drawBtn) {
+          drawBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Appr...`;
+          drawBtn.className = "py-1.5 bg-[#1b154c] border border-purple-900 text-purple-300 text-[10px] font-bold rounded-lg transition-all pointer-events-none select-none flex flex-col items-center justify-center";
+        } else if (pick === "NO" && noBtn) {
+          noBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Appr...`;
+          noBtn.className = "py-1.5 bg-transparent border border-purple-800 text-purple-400 text-[10px] font-bold rounded-lg transition-all pointer-events-none select-none flex flex-col items-center justify-center";
+        }
+
+        try {
+          // -------------------------------------------------------------
+          // STEP 1: APPROVE 1 USDC to the Contract Spender
+          // -------------------------------------------------------------
+          // Initialize Contract connection
+          const usdcContract = new ethers.Contract(usdcAddress, usdcAbi, signer);
+
+          let tokenDecimals = 18;
+          try {
+            const decVal = await usdcContract.decimals();
+            tokenDecimals = Number(decVal);
+            writeLog(`[STEP 1/2] Dynamically queried token decimals: <strong>${tokenDecimals}</strong>`, "info");
+          } catch (decErr) {
+            writeLog(`[STEP 1/2 WARNING] Failed to query decimals of ERC20, defaulting to 18 decimals fallback for Arc space...`, "warning");
+            tokenDecimals = 18;
+          }
+
+          writeLog(`[STEP 1/2] Initiating EIP-20 Approval flow for 1.00 USDC (${tokenDecimals} Decimals)...`, "info");
+          writeLog(`[STEP 1/2] Contract Spender: <span class="font-mono text-slate-500">${predictionAddress}</span>`, "info");
+
+          // Exactly 1 USDC
+          const betAmount = safeParseUnits("1", tokenDecimals);
+          writeLog(`[STEP 1/2] Raw amount to approve: <span class="font-mono text-slate-500">${betAmount.toString()}</span> units`, "info");
+
+          // Trigger Tx
+          const approveTx = await usdcContract.approve(predictionAddress, betAmount);
+          writeLog(`[TX PENDING] Authorization transaction submitted: <span class="text-blue-600 font-mono">${truncateAddress(approveTx.hash)}</span>. Waiting for mining block...`, "tx");
+
+          // Wait confirmation
+          const approveReceipt = await approveTx.wait();
+          writeLog(`[STEP 1/2 SUCCESS] Approval receipt confirmed on-chain! Spender prediction contract is authorized.`, "success");
+
+          // Update Status on active button safely
+          if (pick === "YES" && yesBtn) {
+            yesBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Bet...`;
+          } else if (pick === "DRAW" && drawBtn) {
+            drawBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Bet...`;
+          } else if (pick === "NO" && noBtn) {
+            noBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Bet...`;
+          }
+
+          // -------------------------------------------------------------
+          // STEP 2: TRANSFER ACTUAL 1 USDC TO PREDICTION CONTRACT
+          // -------------------------------------------------------------
+          writeLog(`[STEP 2/3] Initiating direct 1.00 USDC transfer to Prediction Contract...`, "info");
+          writeLog(`[STEP 2/3] Transfer Destination: <span class="font-mono text-slate-500">${predictionAddress}</span>`, "info");
+
+          // Trigger ERC20 transfer
+          const transferTx = await usdcContract.transfer(predictionAddress, betAmount);
+          writeLog(`[TX PENDING] Transfer transaction submitted: <span class="text-blue-600 font-mono">${truncateAddress(transferTx.hash)}</span>. Waiting for mining block...`, "tx");
+
+          // Wait transfer confirmation
+          const transferReceipt = await transferTx.wait();
+          writeLog(`[STEP 2/3 SUCCESS] Actual 1.00 USDC transfer confirmed on-chain!`, "success");
+
+          // Update Status on active button safely
+          if (pick === "YES" && yesBtn) {
+            yesBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Lock...`;
+          } else if (pick === "DRAW" && drawBtn) {
+            drawBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Lock...`;
+          } else if (pick === "NO" && noBtn) {
+            noBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-purple-300 border-t-transparent rounded-full mr-1"></span> Lock...`;
+          }
+
+          // -------------------------------------------------------------
+          // STEP 3: CALL CONTRACT FUNCTION betYes(uint), betNo(uint), or betDraw(uint)
+          // -------------------------------------------------------------
+          writeLog(`[STEP 3/3] Launching Prediction bet registering signature flow...`, "info");
+          writeLog(`[STEP 3/3] Custom Indexing Style: ${indexingModel}. Passing Match ID Parameter: <span class="font-semibold underline">${processedMatchId}</span>`, "info");
+          
+          const predictionContract = new ethers.Contract(predictionAddress, predictionAbi, signer);
+          
+          let betTx;
+          if (pick === "YES") {
+            writeLog(`[STEP 3/3] Executing on-chain: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betYes(${processedMatchId})</code>`, "system");
+            betTx = await predictionContract.betYes(processedMatchId);
+          } else if (pick === "DRAW") {
+            writeLog(`[STEP 3/3] Executing on-chain: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betDraw(${processedMatchId})</code>`, "system");
+            betTx = await predictionContract.betDraw(processedMatchId);
+          } else {
+            writeLog(`[STEP 3/3] Executing on-chain: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betNo(${processedMatchId})</code>`, "system");
+            betTx = await predictionContract.betNo(processedMatchId);
+          }
+
+          writeLog(`[TX PENDING] Betting transaction submitted: <span class="text-blue-600 font-mono">${truncateAddress(betTx.hash)}</span>. Awaiting mining block...`, "tx");
+
+          // Wait confirmation
+          const betReceipt = await betTx.wait();
+          writeLog(`[STEP 3/3 SUCCESS] On-chain bet receipt confirmed!`, "success");
+          writeLog(`🎊 [CONGRATULATIONS] Your 1 USDC prediction has been successfully locked and transferred for Match #${matchId}! Chosen outcome: <strong>${teamName}</strong>.`, "success");
+
+          // Save bet to local storage history
+          try {
+            const selectedOdds = pick === "YES" ? match.oddsYes : (pick === "DRAW" ? match.oddsDraw : match.oddsNo);
+            const newBet = {
+              id: Date.now(),
+              matchId: matchId,
+              teamA: match.teamA,
+              teamB: match.teamB,
+              logoA: match.logoA,
+              logoB: match.logoB,
+              pick: pick,
+              odds: selectedOdds,
+              timestamp: new Date().toISOString()
+            };
+            predictionHistory.push(newBet);
+            localStorage.setItem("arcpredict_history", JSON.stringify(predictionHistory));
+            renderHistory();
+          } catch (storageErr) {
+            console.error("Failed to save bet to history:", storageErr);
+          }
+
+          // Play success alerts
+          alert(`🎉 Bet Succesfully Locked-in and Transferred!\nMatch: ${match.teamA} vs ${match.teamB}\nPrediction: ${pick} (${teamName})\nAmount Transferred: 1.00 USDC`);
+
+          // Refresh user balance reflecting deducted prediction fee
+          await refreshBalance();
+
+        } catch (error) {
+          console.error(error);
+          writeLog(`[TRANSACTION FAILURE] Transaction failed or rejected. Details: ${error.message || error}`, "error");
+          alert(`❌ Transaction Interrupted\nDetails: ${error.message || 'Check terminal logs for full technical breakdown'}`);
+        } finally {
+          // Restore visual button state safely
+          if (yesBtn) {
+            yesBtn.disabled = false;
+            yesBtn.innerHTML = originalYesHtml;
+            yesBtn.className = "py-1.5 bg-purple-700 hover:bg-purple-600 text-purple-100 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight border border-purple-500/30";
+          }
+          if (drawBtn) {
+            drawBtn.disabled = false;
+            drawBtn.innerHTML = originalDrawHtml;
+            drawBtn.className = "py-1.5 bg-[#1b154c] hover:bg-[#251e62] border border-purple-800/60 text-purple-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight";
+          }
+          if (noBtn) {
+            noBtn.disabled = false;
+            noBtn.innerHTML = originalNoHtml;
+            noBtn.className = "py-1.5 bg-transparent border border-purple-800/80 hover:bg-purple-950/45 text-purple-300 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight";
+          }
+          
+          // Revert footer status
+          if (footerStatus) {
+            footerStatus.innerText = "READY FOR PREDICTIONS";
+            footerStatus.className = "text-purple-300 font-bold";
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

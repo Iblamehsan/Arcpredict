@@ -1,0 +1,6 @@
+{
+  "name": "Arcpredict",
+  "description": "A simple Web3 dApp for betting on World Cup 2026 Matchday 3 matches with USDC on Arc testnet.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
