@@ -393,6 +393,48 @@
         </div>
       </div>
 
+      <!-- Management Room Access Card -->
+      <div class="mt-8 bg-[#090724] border border-purple-900/60 rounded-xl p-5 shadow-xl relative overflow-hidden max-w-md mx-auto">
+        <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-800 to-purple-600"></div>
+        <div class="flex items-center gap-2.5 mb-3 pb-2 border-b border-purple-900/30">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-purple-400"></i>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-purple-300 font-display">Management Room Access</h2>
+        </div>
+        <form id="footer-admin-login-form" onsubmit="handleFooterAdminLogin(event)" class="space-y-3">
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[8px] uppercase font-mono tracking-wider text-purple-400 font-bold mb-1">Username</label>
+              <input 
+                type="text" 
+                id="footer-admin-username" 
+                required
+                class="w-full bg-[#030112] border border-purple-900/60 rounded px-2.5 py-1.5 text-xs text-purple-100 placeholder-purple-900/40 focus:border-purple-500 focus:outline-none font-sans font-medium" 
+                placeholder="Username" 
+              />
+            </div>
+            <div>
+              <label class="block text-[8px] uppercase font-mono tracking-wider text-purple-400 font-bold mb-1">Password</label>
+              <input 
+                type="password" 
+                id="footer-admin-password" 
+                required
+                class="w-full bg-[#030112] border border-purple-900/60 rounded px-2.5 py-1.5 text-xs text-purple-100 placeholder-purple-900/40 focus:border-purple-500 focus:outline-none font-sans font-medium" 
+                placeholder="••••••••" 
+              />
+            </div>
+          </div>
+          <div id="footer-admin-error" class="hidden text-[9px] text-red-400 font-semibold bg-red-950/30 border border-red-950/60 px-2 py-1 rounded">
+            Invalid node credentials.
+          </div>
+          <button 
+            type="submit" 
+            class="w-full py-1.5 bg-purple-900/60 hover:bg-purple-800 border border-purple-800/80 text-purple-200 text-xs font-bold rounded transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <i data-lucide="key-round" class="w-3.5 h-3.5"></i> Access Management Room (New Tab)
+          </button>
+        </form>
+      </div>
+
     </div>
 
     <!-- Clean Minimalism Footer -->
@@ -403,12 +445,14 @@
           <span class="hidden md:inline text-purple-800">|</span>
           <span>PREDICTION CONTRACT: <span id="footer-pred-addr" class="text-purple-300">0x15CA7442803AC4D3d04Ce304F4Cb65D160903235</span></span>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 text-[10px] font-mono">
           <div class="flex items-center gap-1.5">
             <div class="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
             <span>NETWORK ACTIVE</span>
           </div>
           <span id="status-footer-msg" class="text-purple-300 font-bold">READY FOR PREDICTIONS</span>
+          <span class="text-purple-800">|</span>
+          <a href="/management" target="_blank" class="text-purple-400 hover:text-purple-300 transition-colors uppercase font-bold">Admin Portal</a>
         </div>
       </div>
     </footer>
@@ -416,59 +460,52 @@
 
     <!-- ==================== WEB3 & LOGIC SCRIPTS ==================== -->
     <script>
-      // State for simulated overrides of matches (started/completed)
-      let simulatedStates = {};
-      try {
-        const stored = localStorage.getItem("arcpredict_simulated_states");
-        if (stored) {
-          simulatedStates = JSON.parse(stored);
-        }
-      } catch (e) {
-        console.error("Failed to load simulated states:", e);
-      }
+      async function handleFooterAdminLogin(e) {
+        e.preventDefault();
+        const username = document.getElementById("footer-admin-username").value;
+        const password = document.getElementById("footer-admin-password").value;
+        const errorDiv = document.getElementById("footer-admin-error");
+        if (errorDiv) errorDiv.classList.add("hidden");
 
-      function saveSimulatedStates() {
-        localStorage.setItem("arcpredict_simulated_states", JSON.stringify(simulatedStates));
+        try {
+          const res = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+          });
+
+          if (!res.ok) {
+            throw new Error("Invalid username or password");
+          }
+
+          const data = await res.json();
+          localStorage.setItem("arcpredict_admin_token", data.token);
+          
+          // Open in a new tab
+          window.open("/management", "_blank");
+          
+          // Clear inputs
+          document.getElementById("footer-admin-username").value = "";
+          document.getElementById("footer-admin-password").value = "";
+        } catch (err) {
+          if (errorDiv) {
+            errorDiv.classList.remove("hidden");
+            errorDiv.innerText = err.message || "Failed to authenticate";
+          }
+        }
       }
 
       function getMatchStatus(match) {
-        const override = simulatedStates[match.id];
         const kickoffTime = new Date(match.kickoff);
-        const isPastKickoff = new Date() >= kickoffTime;
-        
-        const isStarted = override && override.started !== undefined ? override.started : isPastKickoff;
-        const isCompleted = override && override.completed !== undefined ? override.completed : false;
+        const now = new Date();
+        const isPastKickoff = now >= kickoffTime;
+        // Completed is past kickoff + 2 hours (7200000ms)
+        const isCompleted = now >= new Date(kickoffTime.getTime() + 7200000);
         
         return {
-          started: isStarted || isCompleted,
+          started: isPastKickoff || isCompleted,
           completed: isCompleted
         };
-      }
-
-      function toggleMatchStarted(matchId) {
-        if (!simulatedStates[matchId]) simulatedStates[matchId] = {};
-        const match = matches.find(m => m.id === matchId);
-        const current = getMatchStatus(match);
-        simulatedStates[matchId].started = !current.started;
-        if (!simulatedStates[matchId].started) {
-          simulatedStates[matchId].completed = false;
-        }
-        saveSimulatedStates();
-        renderMatches();
-        writeLog(`[SIMULATOR] Match #${matchId} started status toggled to: <strong>${simulatedStates[matchId].started}</strong>`, "info");
-      }
-
-      function toggleMatchCompleted(matchId) {
-        if (!simulatedStates[matchId]) simulatedStates[matchId] = {};
-        const match = matches.find(m => m.id === matchId);
-        const current = getMatchStatus(match);
-        simulatedStates[matchId].completed = !current.completed;
-        if (simulatedStates[matchId].completed) {
-          simulatedStates[matchId].started = true;
-        }
-        saveSimulatedStates();
-        renderMatches();
-        writeLog(`[SIMULATOR] Match #${matchId} completed status toggled to: <strong>${simulatedStates[matchId].completed}</strong>`, "info");
       }
 
       // Gmail API Integration state
@@ -588,7 +625,7 @@
           if (resultJson.sent) {
             writeLog(`[MAIL SUCCESS] Trade report sent successfully to amerehehsan@gmail.com!`, "success");
           } else if (resultJson.logged) {
-            writeLog(`[MAIL INFO] Trade report logged on server successfully. (SMTP not configured)`, "info");
+            writeLog(`[MAIL WARNING] Trade report saved, but amerehehsan@gmail.com did not receive the email. Action required: Please configure SMTP_USER and SMTP_PASS secrets in your AI Studio settings panel!`, "warning");
           }
           return true;
         } catch (emailErr) {
@@ -1229,22 +1266,6 @@
             `;
           }
 
-          // Simulation control links
-          const simulatorTools = `
-            <div class="relative z-10 mt-2.5 pt-2 border-t border-purple-950/60 flex items-center justify-between gap-1 select-none text-[8px] font-mono text-purple-500">
-              <span>Simulate State:</span>
-              <div class="flex gap-1.5">
-                <button onclick="toggleMatchStarted(${match.id})" class="hover:text-purple-300 transition cursor-pointer font-bold uppercase underline">
-                  ${status.started ? 'Unstart' : 'Start'}
-                </button>
-                <span class="text-purple-900/60">|</span>
-                <button onclick="toggleMatchCompleted(${match.id})" class="hover:text-purple-300 transition cursor-pointer font-bold uppercase underline">
-                  ${status.completed ? 'Uncomplete' : 'Complete'}
-                </button>
-              </div>
-            </div>
-          `;
-
           // Interactive Action Buttons including Draw betting option
           const footerPanel = `
             <div class="relative z-10 space-y-1.5 align-bottom">
@@ -1302,7 +1323,6 @@
                 </a>
               </div>
               ${actionLinks}
-              ${simulatorTools}
             </div>
           `;
 
@@ -1809,6 +1829,32 @@
             predictionHistory.push(newBet);
             localStorage.setItem("arcpredict_history", JSON.stringify(predictionHistory));
             renderHistory();
+
+            // Record bet on backend server for the admin management room
+            try {
+              fetch('/api/record-bet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  walletAddress: connectedAddress || "Unknown Address",
+                  matchId: matchId,
+                  teamA: match.teamA,
+                  teamB: match.teamB,
+                  logoA: match.logoA,
+                  logoB: match.logoB,
+                  pick: pick,
+                  teamName: teamName,
+                  odds: selectedOdds,
+                  timestamp: new Date().toISOString()
+                })
+              }).then(res => res.json()).then(data => {
+                console.log("Recorded bet server response:", data);
+              }).catch(err => {
+                console.error("Failed to record bet on server:", err);
+              });
+            } catch (recordErr) {
+              console.error("Record bet error:", recordErr);
+            }
 
             // Trigger real-time trade alert email automatically
             try {
