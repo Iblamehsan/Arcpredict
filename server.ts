@@ -58,6 +58,145 @@ function saveBets(bets: any[]) {
   }
 }
 
+// 16 World Cup 2026 Round of 32 Matches Definitions
+const serverMatches = [
+  { id: 1, group: "Round of 32", teamA: "South Africa", teamB: "Canada", logoA: "🇿🇦", logoB: "🇨🇦", oddsYes: "2.10", oddsDraw: "2.90", oddsNo: "2.50", probYes: "38%", probDraw: "30%", probNo: "32%", date: "June 28, 19:00 UTC", kickoff: "2026-06-28T19:00:00Z" },
+  { id: 2, group: "Round of 32", teamA: "Brazil", teamB: "Japan", logoA: "🇧🇷", logoB: "🇯🇵", oddsYes: "1.35", oddsDraw: "3.75", oddsNo: "5.45", probYes: "62%", probDraw: "23%", probNo: "15%", date: "June 29, 17:00 UTC", kickoff: "2026-06-29T17:00:00Z" },
+  { id: 3, group: "Round of 32", teamA: "Germany", teamB: "Paraguay", logoA: "🇩🇪", logoB: "🇵🇾", oddsYes: "1.45", oddsDraw: "3.50", oddsNo: "4.75", probYes: "58%", probDraw: "24%", probNo: "18%", date: "June 29, 20:30 UTC", kickoff: "2026-06-29T20:30:00Z" },
+  { id: 4, group: "Round of 32", teamA: "Netherlands", teamB: "Morocco", logoA: "🇳🇱", logoB: "🇲🇦", oddsYes: "1.85", oddsDraw: "2.95", oddsNo: "2.80", probYes: "43%", probDraw: "28%", probNo: "29%", date: "June 30, 01:00 UTC", kickoff: "2026-06-30T01:00:00Z" },
+  { id: 5, group: "Round of 32", teamA: "Ivory Coast", teamB: "Norway", logoA: "🇨🇮", logoB: "🇳🇴", oddsYes: "2.25", oddsDraw: "2.85", oddsNo: "2.35", probYes: "35%", probDraw: "29%", probNo: "36%", date: "June 30, 17:00 UTC", kickoff: "2026-06-30T17:00:00Z" },
+  { id: 6, group: "Round of 32", teamA: "France", teamB: "Sweden", logoA: "🇫🇷", logoB: "🇸🇪", oddsYes: "1.40", oddsDraw: "3.60", oddsNo: "5.00", probYes: "60%", probDraw: "24%", probNo: "16%", date: "June 30, 21:00 UTC", kickoff: "2026-06-30T21:00:00Z" },
+  { id: 7, group: "Round of 32", teamA: "Mexico", teamB: "Ecuador", logoA: "🇲🇽", logoB: "🇪🇨", oddsYes: "1.95", oddsDraw: "2.90", oddsNo: "2.65", probYes: "41%", probDraw: "30%", probNo: "29%", date: "July 1, 01:00 UTC", kickoff: "2026-07-01T01:00:00Z" },
+  { id: 8, group: "Round of 32", teamA: "England", teamB: "DR Congo", logoA: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", logoB: "🇨🇩", oddsYes: "1.25", oddsDraw: "4.00", oddsNo: "6.50", probYes: "67%", probDraw: "21%", probNo: "12%", date: "July 1, 16:00 UTC", kickoff: "2026-07-01T16:00:00Z" },
+  { id: 9, group: "Round of 32", teamA: "Belgium", teamB: "Senegal", logoA: "🇧🇪", logoB: "🇸🇳", oddsYes: "1.55", oddsDraw: "3.25", oddsNo: "4.20", probYes: "54%", probDraw: "26%", probNo: "20%", date: "July 1, 20:00 UTC", kickoff: "2026-07-01T20:00:00Z" },
+  { id: 10, group: "Round of 32", teamA: "USA", teamB: "Bosnia & Herzegovina", logoA: "🇺🇸", logoB: "🇧🇦", oddsYes: "1.75", oddsDraw: "3.00", oddsNo: "3.35", probYes: "47%", probDraw: "28%", probNo: "25%", date: "July 2, 00:00 UTC", kickoff: "2026-07-02T00:00:00Z" },
+  { id: 11, group: "Round of 32", teamA: "Spain", teamB: "Austria", logoA: "🇪🇸", logoB: "🇦🇹", oddsYes: "1.50", oddsDraw: "3.40", oddsNo: "4.50", probYes: "56%", probDraw: "25%", probNo: "19%", date: "July 2, 19:00 UTC", kickoff: "2026-07-02T19:00:00Z" },
+  { id: 12, group: "Round of 32", teamA: "Portugal", teamB: "Croatia", logoA: "🇵🇹", logoB: "🇭🇷", oddsYes: "1.80", oddsDraw: "3.00", oddsNo: "2.90", probYes: "44%", probDraw: "28%", probNo: "28%", date: "July 2, 23:00 UTC", kickoff: "2026-07-02T23:00:00Z" },
+  { id: 13, group: "Round of 32", teamA: "Switzerland", teamB: "Algeria", logoA: "🇨🇭", logoB: "🇩🇿", oddsYes: "1.90", oddsDraw: "2.95", oddsNo: "2.75", probYes: "42%", probDraw: "29%", probNo: "29%", date: "July 3, 03:00 UTC", kickoff: "2026-07-03T03:00:00Z" },
+  { id: 14, group: "Round of 32", teamA: "Australia", teamB: "Egypt", logoA: "🇦🇺", logoB: "🇪🇬", oddsYes: "2.15", oddsDraw: "2.85", oddsNo: "2.45", probYes: "37%", probDraw: "30%", probNo: "33%", date: "July 3, 18:00 UTC", kickoff: "2026-07-03T18:00:00Z" },
+  { id: 15, group: "Round of 32", teamA: "Argentina", teamB: "Cape Verde", logoA: "🇦🇷", logoB: "🇨🇻", oddsYes: "1.12", oddsDraw: "5.00", oddsNo: "9.00", probYes: "75%", probDraw: "17%", probNo: "8%", date: "July 3, 22:00 UTC", kickoff: "2026-07-03T22:00:00Z" },
+  { id: 16, group: "Round of 32", teamA: "Colombia", teamB: "Ghana", logoA: "🇨🇴", logoB: "🇬🇭", oddsYes: "1.65", oddsDraw: "3.15", oddsNo: "3.65", probYes: "51%", probDraw: "26%", probNo: "23%", date: "July 4, 01:30 UTC", kickoff: "2026-07-04T01:30:00Z" }
+];
+
+// Helper to determine the winner of a match deterministically based on match kickoff and current time
+function getMatchWinner(matchId: number): "YES" | "NO" | "DRAW" | null {
+  const match = serverMatches.find(m => m.id === matchId);
+  if (!match) return null;
+  
+  const kickoffTime = new Date(match.kickoff);
+  const now = new Date();
+  
+  // Completed if current time is >= kickoff + 2 hours (7200000 ms)
+  const isCompleted = now.getTime() >= (kickoffTime.getTime() + 7200000);
+  if (!isCompleted) return null;
+  
+  // Seeded deterministic goals based on match ID (same as client-side)
+  const goalMinutesA = [(match.id * 17) % 85 + 5, (match.id * 37) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
+  const goalMinutesB = [(match.id * 29) % 85 + 5, (match.id * 47) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
+  
+  const maxA = parseFloat(match.oddsYes) < parseFloat(match.oddsNo) ? 3 : 2;
+  const maxB = parseFloat(match.oddsNo) < parseFloat(match.oddsYes) ? 3 : 2;
+  
+  const activeA = goalMinutesA.slice(0, maxA);
+  const activeB = goalMinutesB.slice(0, maxB);
+  
+  let scoreA = activeA.length;
+  let scoreB = activeB.length;
+  
+  if (scoreA > scoreB) return "YES";
+  if (scoreA < scoreB) return "NO";
+  return "DRAW";
+}
+
+// API Endpoint to fetch current leaderboard stats
+app.get("/api/leaderboard", (req, res) => {
+  try {
+    const bets = getBets();
+    const addressStats: { [walletAddress: string]: { wins: number; total: number; profit: number } } = {};
+    
+    // Seed some active top gamblers so leaderboard has content right away
+    const seedPlayers = [
+      { walletAddress: "0x71C80a...8E5a", wins: 14, total: 22, profit: 12.50 },
+      { walletAddress: "0x3Fd912...19Bc", wins: 11, total: 18, profit: 8.20 },
+      { walletAddress: "0x9Aa00c...F52d", wins: 9, total: 15, profit: 5.40 },
+      { walletAddress: "0x2Db765...48Ce", wins: 8, total: 12, profit: 6.80 },
+      { walletAddress: "0xE1f52a...907A", wins: 6, total: 10, profit: 3.10 }
+    ];
+    
+    // Group and calculate wins for real user bets
+    bets.forEach((bet) => {
+      const addr = bet.walletAddress;
+      if (!addr) return;
+      
+      if (!addressStats[addr]) {
+        addressStats[addr] = { wins: 0, total: 0, profit: 0.0 };
+      }
+      addressStats[addr].total += 1;
+      
+      const winner = getMatchWinner(parseInt(bet.matchId));
+      if (winner !== null) {
+        if (bet.pick === winner) {
+          addressStats[addr].wins += 1;
+          const returnMultiplier = parseFloat(bet.odds) || 1.0;
+          addressStats[addr].profit += (returnMultiplier - 1.0);
+        } else {
+          addressStats[addr].profit -= 1.0;
+        }
+      }
+    });
+    
+    // Merge seeds and real users
+    const mergedList: any[] = [];
+    
+    // Add seeds first
+    seedPlayers.forEach(p => {
+      mergedList.push({
+        walletAddress: p.walletAddress,
+        wins: p.wins,
+        total: p.total,
+        profit: p.profit,
+        isSeed: true
+      });
+    });
+    
+    // Add real users
+    Object.keys(addressStats).forEach(addr => {
+      const displayAddr = addr.length > 12 ? (addr.substring(0, 8) + "..." + addr.substring(addr.length - 4)) : addr;
+      
+      // Match seed by truncated format or exact
+      const seedIndex = mergedList.findIndex(p => p.walletAddress.toLowerCase() === displayAddr.toLowerCase() || p.walletAddress.toLowerCase() === addr.toLowerCase());
+      const stats = addressStats[addr];
+      
+      if (seedIndex >= 0) {
+        mergedList[seedIndex].wins += stats.wins;
+        mergedList[seedIndex].total += stats.total;
+        mergedList[seedIndex].profit += stats.profit;
+        mergedList[seedIndex].isSeed = false;
+      } else {
+        mergedList.push({
+          walletAddress: addr,
+          wins: stats.wins,
+          total: stats.total,
+          profit: stats.profit,
+          isSeed: false
+        });
+      }
+    });
+    
+    // Sort by wins desc, then profit desc
+    mergedList.sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      return b.profit - a.profit;
+    });
+    
+    const top10 = mergedList.slice(0, 10);
+    return res.json({ success: true, leaderboard: top10 });
+  } catch (err) {
+    console.error("Error generating leaderboard:", err);
+    return res.status(500).json({ error: "Failed to generate leaderboard stats" });
+  }
+});
+
 // API Endpoint to record user bet
 app.post("/api/record-bet", (req, res) => {
   try {
