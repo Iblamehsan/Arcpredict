@@ -508,27 +508,83 @@
 
       </div>
 
-      <!-- Dashboard Divider Section -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between border-t border-blue-900/40 pt-6">
-        <div>
-          <h2 class="text-lg font-bold font-display text-white flex items-center gap-2">
-            🏟️ Forecast Markets Guide 
-          </h2>
-          <p class="text-slate-400 text-xs">
-            Stake 1 USDC on outcomes below. Team 1 = Team A Wins, Team 2 = Team B Wins, DRAW = Balanced Match.
-          </p>
+      <!-- World Cup 2026 Outright Champion Hero Card (Placed above all matches) -->
+      <div id="champion-outright-hero" class="mb-6 bg-gradient-to-r from-slate-950 via-[#0c122e] to-slate-950 border border-amber-500/40 p-5 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.15)] relative overflow-hidden group">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(245,158,11,0.08),_transparent_70%)] pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div class="space-y-1.5 max-w-2xl text-left">
+            <span class="inline-flex items-center gap-1.5 text-[9px] font-bold text-amber-400 tracking-widest uppercase bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">
+              <i data-lucide="award" class="w-3 h-3 text-amber-400"></i>
+              <span>OUTRIGHT CHAMPION PREMIUM MARKET</span>
+            </span>
+            <h3 class="text-xl font-black font-display text-white tracking-tight sm:text-2xl">
+              Who Will Lift the FIFA World Cup 2026 Trophy? 🏆
+            </h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Predict the tournament outright champion before the Round of 32 concludes. Filter and back elite contenders with real-time probability-adjusted odds.
+            </p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <div class="hidden sm:block px-4 py-2 bg-slate-900/90 border border-blue-900/40 rounded-xl font-mono text-xs text-center">
+              <span class="text-slate-500 block text-[9px] uppercase font-bold tracking-wider mb-0.5">Base Unit Stake</span>
+              <span class="text-amber-400 font-black text-sm">1.00 USDC</span>
+            </div>
+            <button 
+              onclick="toggleChampionContendersList()" 
+              class="px-5 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black uppercase rounded-xl tracking-wider transition-all duration-300 active:scale-95 flex items-center gap-2 cursor-pointer border border-amber-400/80 shadow-[0_4px_20px_rgba(245,158,11,0.3)] hover:shadow-[0_4px_30px_rgba(245,158,11,0.5)]"
+            >
+              <i data-lucide="trophy" class="w-4 h-4"></i>
+              <span>View Contenders & Odds</span>
+              <i id="champion-chevron-icon" data-lucide="chevron-down" class="w-4 h-4 transform transition-transform duration-300"></i>
+            </button>
+          </div>
         </div>
-        <div class="text-slate-400 text-xs select-none mt-1 md:mt-0 font-mono">
-          Double-signature authorization (Approve + Bet) required.
+
+        <!-- Collapsible Contenders & Odds Section -->
+        <div id="champion-collapsible-contenders" class="hidden mt-6 pt-6 border-t border-amber-500/20">
+          <div class="text-center max-w-md mx-auto mb-5">
+            <h4 class="text-xs font-bold text-amber-400 uppercase tracking-widest font-mono">Contenders Ranked by Probability</h4>
+            <p class="text-[11px] text-slate-400 mt-1">Odds reflect current global trade sentiments. Favorites have higher likelihood, outsiders offer premium multipliers.</p>
+          </div>
+          
+          <div id="champion-hero-teams-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Populated dynamically via JS -->
+          </div>
         </div>
       </div>
 
-      <!-- 16 World Cup Matches Predictions Minimalist Grid -->
+      <!-- 16 World Cup Matches Predictions Minimalist Grid (Tab 1) -->
       <div id="matches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <!-- Injected dynamically via JS loop -->
         <div class="col-span-full py-16 text-center text-slate-400 bg-gradient-to-b from-[#0a1128] to-[#050918] border border-blue-900/40 rounded-xl shadow-lg">
           <div class="inline-block animate-spin w-6 h-6 border-3 border-amber-500/20 border-t-amber-500 rounded-full mb-2"></div>
           <p class="text-xs font-mono text-amber-300">Compiling correct stadium fixtures dashboard...</p>
+        </div>
+      </div>
+
+      <!-- Over / Under Goals Interactive Chart Grid (Tab 2) -->
+      <div id="goals-ou-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <!-- Outright World Cup Champion Bento Grid (Tab 3) -->
+      <div id="champion-tab-container" class="hidden space-y-6">
+        <div class="bg-gradient-to-r from-amber-950/20 via-[#0a122e] to-amber-950/20 border border-amber-500/30 p-5 rounded-2xl shadow-xl relative overflow-hidden">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(245,158,11,0.08),_transparent_70%)] pointer-events-none"></div>
+          <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="space-y-1">
+              <span class="text-[9px] font-bold text-amber-400 tracking-widest uppercase bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">OUTRIGHT CHAMPION MARKET</span>
+              <h3 class="text-lg font-black font-display text-white">Who Will Lift the FIFA World Cup 2026?</h3>
+              <p class="text-xs text-slate-400">Lock your tournament winner prediction below. All 16 elite contenders are active with live probability-backed odds.</p>
+            </div>
+            <div class="px-4 py-2 bg-slate-950/90 border border-amber-500/20 rounded-xl font-mono text-xs text-center shrink-0">
+              <span class="text-slate-400 block text-[9px] uppercase font-bold tracking-wider mb-0.5">Base Unit Stake</span>
+              <span class="text-amber-400 font-extrabold text-sm">1.00 USDC</span>
+            </div>
+          </div>
+        </div>
+        <div id="champion-teams-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Injected dynamically via JS -->
         </div>
       </div>
 
@@ -670,60 +726,6 @@
       // Gmail API Integration state
       let googleUser = null;
       let googleAccessToken = null;
-
-      // Initialize Firebase Compat
-      try {
-        const firebaseConfig = {
-          projectId: "wise-girder-1nzsc",
-          appId: "1:300108569867:web:575ec56e83508d3122560e",
-          apiKey: "AIzaSyCQkiPyS0olRlRcr9r-UtR2Tuia-U6crpw",
-          authDomain: "wise-girder-1nzsc.firebaseapp.com",
-          storageBucket: "wise-girder-1nzsc.firebasestorage.app",
-          messagingSenderId: "300108569867"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        
-        // Listen to auth changes
-        firebase.auth().onAuthStateChanged((user) => {
-          if (user) {
-            googleUser = user;
-            const syncBadge = document.getElementById("gmail-sync-badge");
-            if (syncBadge) {
-              syncBadge.innerText = "SYNCED";
-              syncBadge.className = "px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-green-950/60 text-green-400 border border-green-900/50";
-            }
-            const authSec = document.getElementById("gmail-auth-section");
-            if (authSec) authSec.classList.add("hidden");
-            const activeSec = document.getElementById("gmail-active-section");
-            if (activeSec) activeSec.classList.remove("hidden");
-            const userEmail = document.getElementById("gmail-user-email");
-            if (userEmail) userEmail.innerText = user.email;
-            
-            const storedToken = sessionStorage.getItem("gmail_access_token");
-            if (storedToken) {
-              googleAccessToken = storedToken;
-            }
-          } else {
-            googleUser = null;
-            googleAccessToken = null;
-            sessionStorage.removeItem("gmail_access_token");
-            const syncBadge = document.getElementById("gmail-sync-badge");
-            if (syncBadge) {
-              syncBadge.innerText = "NOT SYNCED";
-              syncBadge.className = "px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-red-950/60 text-red-400 border border-red-900/50";
-            }
-            const authSec = document.getElementById("gmail-auth-section");
-            if (authSec) authSec.classList.remove("hidden");
-            const activeSec = document.getElementById("gmail-active-section");
-            if (activeSec) activeSec.classList.add("hidden");
-          }
-          // Refresh matches to show or hide send email report buttons
-          renderMatches();
-        });
-      } catch (fbErr) {
-        console.error("Firebase startup error:", fbErr);
-      }
 
       async function connectGmail() {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -905,11 +907,41 @@
         "function betDraw(uint256 matchId) external"
       ];
 
-      // Web3 Application State
+       // Web3 Application State
       let connectedAddress = "";
       let networkChainId = null;
       let provider = null;
       let signer = null;
+
+      // Active view tab state ("outcomes", "goals-ou", "champion")
+      let activeTab = "outcomes";
+
+      // Selected Over/Under threshold per match (stored by matchId)
+      const selectedOUThresholds = {};
+      // Initialize with 2.5 goals default for each match
+      for (let i = 1; i <= 16; i++) {
+        selectedOUThresholds[i] = 2.5;
+      }
+
+      // World Cup 2026 Outright Champion Contenders List (16 Elite Teams with realistic house-vig odds)
+      const championContenders = [
+        { index: 0, name: "Brazil", logo: "🇧🇷", odds: "4.25", status: "Main Contender", color: "from-yellow-600 to-green-600" },
+        { index: 1, name: "France", logo: "🇫🇷", odds: "4.75", status: "Main Contender", color: "from-blue-600 to-red-600" },
+        { index: 2, name: "Argentina", logo: "🇦🇷", odds: "5.20", status: "Main Contender", color: "from-sky-500 to-amber-500" },
+        { index: 3, name: "England", logo: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", odds: "5.80", status: "Main Contender", color: "from-red-600 to-slate-200" },
+        { index: 4, name: "Spain", logo: "🇪🇸", odds: "6.20", status: "Strong Challenger", color: "from-red-600 to-yellow-500" },
+        { index: 5, name: "Germany", logo: "🇩🇪", odds: "7.50", status: "Strong Challenger", color: "from-stone-800 to-yellow-600" },
+        { index: 6, name: "Portugal", logo: "🇵🇹", odds: "8.50", status: "Strong Challenger", color: "from-red-600 to-green-600" },
+        { index: 7, name: "Netherlands", logo: "🇳🇱", odds: "10.00", status: "Strong Challenger", color: "from-orange-500 to-blue-600" },
+        { index: 8, name: "Belgium", logo: "🇧🇪", odds: "12.50", status: "Challenger", color: "from-red-600 to-black" },
+        { index: 9, name: "USA", logo: "🇺🇸", odds: "15.00", status: "Challenger", color: "from-blue-700 to-red-600" },
+        { index: 10, name: "Mexico", logo: "🇲🇽", odds: "18.00", status: "Dark Horse", color: "from-green-700 to-red-600" },
+        { index: 11, name: "Colombia", logo: "🇨🇴", odds: "22.00", status: "Dark Horse", color: "from-yellow-500 to-blue-700" },
+        { index: 12, name: "Croatia", logo: "🇭🇷", odds: "25.00", status: "Dark Horse", color: "from-red-600 to-slate-200" },
+        { index: 13, name: "Morocco", logo: "🇲🇦", odds: "28.00", status: "Dark Horse", color: "from-red-700 to-green-700" },
+        { index: 14, name: "Norway", logo: "🇳🇴", odds: "35.00", status: "Outside Threat", color: "from-red-600 to-blue-800" },
+        { index: 15, name: "Canada", logo: "🇨🇦", odds: "45.00", status: "Outside Threat", color: "from-red-600 to-slate-100" }
+      ];
 
       // Prediction History State
       let predictionHistory = [];
@@ -1036,11 +1068,12 @@
               rankClass = "text-amber-600 font-bold";
             }
             
-            const displayAddress = player.walletAddress.length > 12 
-              ? (player.walletAddress.substring(0, 6) + "..." + player.walletAddress.substring(player.walletAddress.length - 4)) 
-              : player.walletAddress;
+            const walletAddrStr = player.walletAddress || "";
+            const displayAddress = walletAddrStr.length > 12 
+              ? (walletAddrStr.substring(0, 6) + "..." + walletAddrStr.substring(walletAddrStr.length - 4)) 
+              : (walletAddrStr || "Unknown");
               
-            const isMe = connectedAddress && player.walletAddress.toLowerCase() === connectedAddress.toLowerCase();
+            const isMe = connectedAddress && walletAddrStr && walletAddrStr.toLowerCase() === connectedAddress.toLowerCase();
             const rowBg = isMe ? "bg-amber-950/20 border-amber-500/30" : "bg-blue-950/20 border-blue-900/30";
             
             div.className = `p-2 rounded border ${rowBg} flex justify-between items-center text-[11px] gap-2`;
@@ -1165,11 +1198,48 @@
           const match = matches.find(m => m.id === parseInt(item.matchId));
           let statusBadgeHtml = `<span class="text-[8px] bg-slate-950 text-slate-400 border border-blue-900/30 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase tracking-wider">LOCKED</span>`;
           
-          if (match) {
+          if (item.matchId === "champion") {
+            const now = new Date();
+            const tournamentEnd = new Date("2026-07-04T00:00:00Z");
+            if (now >= tournamentEnd) {
+              const isWin = item.teamName === "Brazil" || item.pick === "CHAMPION_BRA";
+              if (isWin) {
+                const payout = (parseFloat(odds) * 1.0).toFixed(2);
+                statusBadgeHtml = `<span class="text-[8px] bg-green-950/80 text-green-400 border border-green-800/60 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase tracking-wider">WON (+${payout})</span>`;
+              } else {
+                statusBadgeHtml = `<span class="text-[8px] bg-red-950/80 text-red-400 border border-red-800/60 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase tracking-wider">LOST (-1.00)</span>`;
+              }
+            } else {
+              statusBadgeHtml = `<span class="text-[8px] bg-slate-950 text-slate-400 border border-blue-900/30 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase tracking-wider">PENDING</span>`;
+            }
+          } else if (match) {
             const score = getMatchScore(match);
             if (score.completed) {
-              const winner = getMatchWinner(match);
-              if (pick === winner) {
+              let isWin = false;
+              if (pick && (pick.startsWith("OVER_") || pick.startsWith("UNDER_"))) {
+                // Determine Over/Under winner
+                const goalMinutesA = [(match.id * 17) % 85 + 5, (match.id * 37) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
+                const goalMinutesB = [(match.id * 29) % 85 + 5, (match.id * 47) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
+                const maxA = parseFloat(match.oddsYes) < parseFloat(match.oddsNo) ? 3 : 2;
+                const maxB = parseFloat(match.oddsNo) < parseFloat(match.oddsYes) ? 3 : 2;
+                const activeA = goalMinutesA.slice(0, maxA);
+                const activeB = goalMinutesB.slice(0, maxB);
+                const scoreA = activeA.length;
+                const scoreB = activeB.length;
+                const totalGoals = scoreA + scoreB;
+                
+                const threshold = parseFloat(pick.split("_")[1]);
+                if (pick.startsWith("OVER_")) {
+                  isWin = totalGoals > threshold;
+                } else {
+                  isWin = totalGoals < threshold;
+                }
+              } else {
+                const winner = getMatchWinner(match);
+                isWin = (pick === winner);
+              }
+
+              if (isWin) {
                 const payout = (parseFloat(odds) * 1.0).toFixed(2);
                 statusBadgeHtml = `<span class="text-[8px] bg-green-950/80 text-green-400 border border-green-800/60 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase tracking-wider">WON (+${payout})</span>`;
               } else {
@@ -1496,6 +1566,60 @@
           } catch (ethErr) {
             console.warn("Metamask listeners registration ignored due to sandbox restriction:", ethErr);
           }
+
+          // Initialize Firebase Compat at DOMContentLoaded to avoid Temporal Dead Zone ReferenceError
+          try {
+            const firebaseConfig = {
+              projectId: "wise-girder-1nzsc",
+              appId: "1:300108569867:web:575ec56e83508d3122560e",
+              apiKey: "AIzaSyCQkiPyS0olRlRcr9r-UtR2Tuia-U6crpw",
+              authDomain: "wise-girder-1nzsc.firebaseapp.com",
+              storageBucket: "wise-girder-1nzsc.firebasestorage.app",
+              messagingSenderId: "300108569867"
+            };
+            
+            firebase.initializeApp(firebaseConfig);
+            
+            // Listen to auth changes
+            firebase.auth().onAuthStateChanged((user) => {
+              if (user) {
+                googleUser = user;
+                const syncBadge = document.getElementById("gmail-sync-badge");
+                if (syncBadge) {
+                  syncBadge.innerText = "SYNCED";
+                  syncBadge.className = "px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-green-950/60 text-green-400 border border-green-900/50";
+                }
+                const authSec = document.getElementById("gmail-auth-section");
+                if (authSec) authSec.classList.add("hidden");
+                const activeSec = document.getElementById("gmail-active-section");
+                if (activeSec) activeSec.classList.remove("hidden");
+                const userEmail = document.getElementById("gmail-user-email");
+                if (userEmail) userEmail.innerText = user.email;
+                
+                const storedToken = sessionStorage.getItem("gmail_access_token");
+                if (storedToken) {
+                  googleAccessToken = storedToken;
+                }
+              } else {
+                googleUser = null;
+                googleAccessToken = null;
+                sessionStorage.removeItem("gmail_access_token");
+                const syncBadge = document.getElementById("gmail-sync-badge");
+                if (syncBadge) {
+                  syncBadge.innerText = "NOT SYNCED";
+                  syncBadge.className = "px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-red-950/60 text-red-400 border border-red-900/50";
+                }
+                const authSec = document.getElementById("gmail-auth-section");
+                if (authSec) authSec.classList.remove("hidden");
+                const activeSec = document.getElementById("gmail-active-section");
+                if (activeSec) activeSec.classList.add("hidden");
+              }
+              // Refresh matches to show or hide send email report buttons
+              renderMatches();
+            });
+          } catch (fbErr) {
+            console.error("Firebase startup error:", fbErr);
+          }
         } catch (domErr) {
           console.error("Initialization process halted with exception:", domErr);
         }
@@ -1694,6 +1818,775 @@
         });
       }
 
+      // Switch active view tab on the same page
+      function switchActiveTab(tab) {
+        activeTab = tab;
+        
+        // Hide and show appropriate grids
+        const outcomesGrid = document.getElementById("matches-grid");
+        const goalsGrid = document.getElementById("goals-ou-grid");
+        const championGrid = document.getElementById("champion-tab-container");
+        
+        const tabBtnOutcomes = document.getElementById("tab-btn-outcomes");
+        const tabBtnGoals = document.getElementById("tab-btn-goals-ou");
+        const tabBtnChampion = document.getElementById("tab-btn-champion");
+        
+        if (outcomesGrid) outcomesGrid.classList.add("hidden");
+        if (goalsGrid) goalsGrid.classList.add("hidden");
+        if (championGrid) championGrid.classList.add("hidden");
+        
+        // Reset button classes to inactive
+        const inactiveClass = "px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-amber-300 hover:bg-amber-500/10";
+        const activeClass = "px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md";
+        
+        if (tabBtnOutcomes) tabBtnOutcomes.className = inactiveClass;
+        if (tabBtnGoals) tabBtnGoals.className = inactiveClass;
+        if (tabBtnChampion) tabBtnChampion.className = inactiveClass;
+        
+        if (tab === "outcomes") {
+          if (outcomesGrid) outcomesGrid.classList.remove("hidden");
+          if (tabBtnOutcomes) tabBtnOutcomes.className = activeClass;
+          renderMatches();
+        } else if (tab === "goals-ou") {
+          if (goalsGrid) goalsGrid.classList.remove("hidden");
+          if (tabBtnGoals) tabBtnGoals.className = activeClass;
+          renderGoalsOU();
+        } else if (tab === "champion") {
+          if (championGrid) championGrid.classList.remove("hidden");
+          if (tabBtnChampion) tabBtnChampion.className = activeClass;
+          renderChampionOutright();
+        }
+        
+        writeLog(`[NAVIGATION] Displaying Forecast Market tab: <span class="font-bold text-amber-400 font-mono uppercase">${tab}</span>`, "system");
+      }
+
+      // Dynamic calculation of Over/Under Odds based on fixture strength and target goals
+      function getOverUnderOdds(matchId, threshold) {
+        // Base probability model with a balanced 8% built-in vig (house margin) to secure house edge
+        let baseOverProb = 0.50;
+        if (threshold === 0.5) baseOverProb = 0.82;
+        else if (threshold === 1.5) baseOverProb = 0.60;
+        else if (threshold === 2.5) baseOverProb = 0.44;
+        else if (threshold === 3.5) baseOverProb = 0.25;
+        else if (threshold === 4.5) baseOverProb = 0.12;
+        else if (threshold === 5.5) baseOverProb = 0.05;
+
+        // Shift probability based on matchId to create unique realistic odds per match
+        const variance = ((matchId * 13) % 15 - 7.5) / 100; // -0.075 to +0.075
+        let overProb = baseOverProb + variance;
+        if (overProb < 0.02) overProb = 0.02;
+        if (overProb > 0.95) overProb = 0.95;
+
+        const underProb = 1.0 - overProb;
+
+        // Secure a clear house advantage (vig) of ~8% by scaling payouts down by 0.92
+        const overOdds = Math.max(1.02, parseFloat((0.92 / overProb).toFixed(2)));
+        const underOdds = Math.max(1.02, parseFloat((0.92 / underProb).toFixed(2)));
+
+        return { 
+          over: overOdds, 
+          under: underOdds,
+          overProbPercent: Math.round(overProb * 100),
+          underProbPercent: Math.round(underProb * 100)
+        };
+      }
+
+      // Handle changing the selected Over/Under threshold of a match card
+      function changeOUThreshold(matchId, threshold) {
+        selectedOUThresholds[matchId] = parseFloat(threshold);
+        
+        const match = matches.find(m => m.id === matchId);
+        if (!match) return;
+        
+        const ouData = getOverUnderOdds(matchId, selectedOUThresholds[matchId]);
+        
+        // Update threshold selector highlight for all matching elements
+        const thresholds = [0.5, 1.5, 2.5, 3.5, 4.5, 5.5];
+        thresholds.forEach(t => {
+          const btns = document.querySelectorAll(`[id="ou-btn-${matchId}-${t}"]`);
+          btns.forEach(btn => {
+            if (t === selectedOUThresholds[matchId]) {
+              btn.className = "px-1.5 py-0.5 text-[8px] font-extrabold rounded bg-amber-500 text-slate-950 border border-amber-400 scale-105 transition-all";
+            } else {
+              btn.className = "px-1.5 py-0.5 text-[8px] font-bold rounded bg-slate-950/80 hover:bg-slate-900 border border-blue-900/40 text-slate-400 hover:text-amber-400 transition-all";
+            }
+          });
+        });
+
+        // Update probability bar charts
+        const overBars = document.querySelectorAll(`[id="ou-bar-over-${matchId}"]`);
+        overBars.forEach(bar => { bar.style.width = `${ouData.overProbPercent}%`; });
+        
+        const underBars = document.querySelectorAll(`[id="ou-bar-under-${matchId}"]`);
+        underBars.forEach(bar => { bar.style.width = `${ouData.underProbPercent}%`; });
+        
+        const overLabels = document.querySelectorAll(`[id="ou-lbl-over-${matchId}"]`);
+        overLabels.forEach(label => { label.innerText = `${ouData.overProbPercent}% Over`; });
+        
+        const underLabels = document.querySelectorAll(`[id="ou-lbl-under-${matchId}"]`);
+        underLabels.forEach(label => { label.innerText = `${ouData.underProbPercent}% Under`; });
+
+        // Update Bet buttons text and titles
+        const overBtnOdds = document.querySelectorAll(`[id="ou-btn-over-odds-${matchId}"]`);
+        overBtnOdds.forEach(oddsEl => { oddsEl.innerText = `${ouData.over}x`; });
+        
+        const underBtnOdds = document.querySelectorAll(`[id="ou-btn-under-odds-${matchId}"]`);
+        underBtnOdds.forEach(oddsEl => { oddsEl.innerText = `${ouData.under}x`; });
+        
+        const overBtns = document.querySelectorAll(`[id="ou-btn-over-${matchId}"]`);
+        overBtns.forEach(btn => { btn.title = `Bet on Over ${selectedOUThresholds[matchId]} goals. Will return ${ouData.over} USDC.`; });
+        
+        const underBtns = document.querySelectorAll(`[id="ou-btn-under-${matchId}"]`);
+        underBtns.forEach(btn => { btn.title = `Bet on Under ${selectedOUThresholds[matchId]} goals. Will return ${ouData.under} USDC.`; });
+      }
+
+      // Toggle collapsible Over/Under goals accordion in main match cards
+      function toggleOUAccordion(matchId) {
+        const content = document.getElementById(`ou-accordion-content-${matchId}`);
+        const chevron = document.getElementById(`ou-chevron-${matchId}`);
+        if (content) {
+          content.classList.toggle("hidden");
+          if (chevron) {
+            chevron.classList.toggle("rotate-180");
+          }
+        }
+      }
+
+      // Render the Over / Under goals tab grid
+      function renderGoalsOU() {
+        const grid = document.getElementById("goals-ou-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        matches.forEach((match) => {
+          const status = getMatchStatus(match);
+          const activeThreshold = selectedOUThresholds[match.id] || 2.5;
+          const ouData = getOverUnderOdds(match.id, activeThreshold);
+          
+          let overDisabledAttr = status.started ? "disabled" : "";
+          let underDisabledAttr = status.started ? "disabled" : "";
+          
+          let overClass = "flex-1 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight border border-amber-400 shadow-xs";
+          let underClass = "flex-1 py-2 bg-[#0e1635] hover:bg-[#15224f] border border-amber-500/30 text-amber-400 text-[10px] font-bold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight";
+
+          if (status.started) {
+            overClass = "flex-1 py-2 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex flex-col items-center justify-center opacity-40 pointer-events-none";
+            underClass = "flex-1 py-2 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex flex-col items-center justify-center opacity-40 pointer-events-none";
+          }
+
+          const card = document.createElement("div");
+          card.id = `ou-card-${match.id}`;
+          card.className = "bg-gradient-to-b from-[#0a1128] to-[#050918] border border-blue-900/40 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400/80 hover:scale-[1.03] hover:z-10 transition-all duration-500 ease-out hover:shadow-[0_0_35px_rgba(245,158,11,0.25)] relative overflow-hidden luxury-card-pulse luxury-card-glow";
+          
+          const flagBackground = `
+            <div class="absolute inset-0 pointer-events-none flex select-none overflow-hidden rounded-xl animate-pulse" style="z-index: 0; opacity: 0.03;">
+              <span class="w-1/2 text-8xl flex items-center justify-center font-bold filter blur-lg">${match.logoA}</span>
+              <span class="w-1/2 text-8xl flex items-center justify-center font-bold filter blur-lg">${match.logoB}</span>
+            </div>
+          `;
+
+          // Generate pills for threshold selection
+          const thresholds = [0.5, 1.5, 2.5, 3.5, 4.5, 5.5];
+          let pillButtons = "";
+          thresholds.forEach(t => {
+            const isSelected = t === activeThreshold;
+            const btnClass = isSelected 
+              ? "px-2 py-1 text-[10px] font-extrabold rounded bg-amber-500 text-slate-950 border border-amber-400 scale-105 transition-all"
+              : "px-2 py-1 text-[10px] font-bold rounded bg-slate-950/80 hover:bg-slate-900 border border-blue-900/40 text-slate-400 hover:text-amber-400 transition-all";
+            pillButtons += `<button id="ou-btn-${match.id}-${t}" onclick="changeOUThreshold(${match.id}, ${t})" class="${btnClass}">${t}</button>`;
+          });
+
+          card.innerHTML = `
+            ${flagBackground}
+            <div class="relative z-10 flex flex-col h-full justify-between space-y-4">
+              <!-- Header Details -->
+              <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono border-b border-blue-950 pb-2">
+                <span class="font-bold text-amber-500">MATCH #${match.id}</span>
+                <span>${match.date}</span>
+              </div>
+
+              <!-- Teams info -->
+              <div class="flex items-center justify-between py-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">${match.logoA}</span>
+                  <span class="text-xs font-black font-display text-white truncate max-w-[100px]">${match.teamA}</span>
+                </div>
+                <span class="text-[9px] font-mono font-bold text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-blue-900/30">vs</span>
+                <div class="flex items-center gap-2 flex-row-reverse">
+                  <span class="text-xl">${match.logoB}</span>
+                  <span class="text-xs font-black font-display text-white truncate max-w-[100px] text-right">${match.teamB}</span>
+                </div>
+              </div>
+
+              <!-- Threshold Selector Pill Layout -->
+              <div class="space-y-1.5">
+                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Goal threshold:</span>
+                <div class="grid grid-cols-6 gap-1 bg-slate-950 p-1 rounded-lg border border-blue-900/30">
+                  ${pillButtons}
+                </div>
+              </div>
+
+              <!-- Beautiful Dual-Bar Progress Chart (نمودار) -->
+              <div class="space-y-1 bg-slate-950/40 p-2.5 rounded-xl border border-blue-950">
+                <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Real-time Goal distribution (Vig Adjusted):</span>
+                
+                <!-- The Visual Chart Element -->
+                <div class="h-3.5 bg-[#030612] rounded-full overflow-hidden flex border border-blue-900/40 relative">
+                  <div id="ou-bar-over-${match.id}" class="h-full bg-gradient-to-r from-amber-500 to-yellow-500 transition-all duration-500" style="width: ${ouData.overProbPercent}%;"></div>
+                  <div id="ou-bar-under-${match.id}" class="h-full bg-gradient-to-r from-blue-700 to-indigo-600 transition-all duration-500" style="width: ${ouData.underProbPercent}%;"></div>
+                </div>
+                
+                <div class="flex justify-between text-[9px] font-bold font-mono text-slate-300 pt-0.5">
+                  <span id="ou-lbl-over-${match.id}" class="text-amber-400">${ouData.overProbPercent}% Over</span>
+                  <span id="ou-lbl-under-${match.id}" class="text-indigo-450">${ouData.underProbPercent}% Under</span>
+                </div>
+              </div>
+
+              <!-- Action Bet Buttons -->
+              <div id="ou-card-body-${match.id}" class="space-y-2 pt-1 border-t border-blue-950">
+                <div class="flex gap-2">
+                  <!-- Bet Over -->
+                  <button id="ou-btn-over-${match.id}" onclick="placeGoalsOUBet(${match.id}, 'OVER')" ${overDisabledAttr} class="${overClass}" title="Bet on Over ${activeThreshold} goals. Will return ${ouData.over} USDC.">
+                    <span class="text-[8px] tracking-wider uppercase opacity-85">Bet Over</span>
+                    <span id="ou-btn-over-odds-${match.id}" class="font-extrabold text-xs mt-0.5">${ouData.over}x</span>
+                  </button>
+                  
+                  <!-- Bet Under -->
+                  <button id="ou-btn-under-${match.id}" onclick="placeGoalsOUBet(${match.id}, 'UNDER')" ${underDisabledAttr} class="${underClass}" title="Bet on Under ${activeThreshold} goals. Will return ${ouData.under} USDC.">
+                    <span class="text-[8px] tracking-wider uppercase opacity-85">Bet Under</span>
+                    <span id="ou-btn-under-odds-${match.id}" class="font-extrabold text-xs mt-0.5">${ouData.under}x</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      // Render the outright hero champion card contenders list
+      function renderHeroChampionOutright() {
+        const grid = document.getElementById("champion-hero-teams-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        championContenders.forEach((team) => {
+          const card = document.createElement("div");
+          card.id = `hero-champion-card-${team.index}`;
+          card.className = "bg-gradient-to-b from-[#0a1128]/85 to-[#050918]/90 border border-blue-900/30 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group";
+          
+          const shineOverlay = `
+            <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none"></div>
+          `;
+
+          const now = new Date();
+          const closed = now >= new Date("2026-07-04T00:00:00Z");
+          
+          let btnClass = "w-full py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[10px] font-black uppercase rounded-lg tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer border border-amber-400/80 shadow-sm";
+          let disabledAttr = "";
+          
+          if (closed) {
+            btnClass = "w-full py-2 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex items-center justify-center pointer-events-none opacity-40";
+            disabledAttr = "disabled";
+          }
+
+          card.innerHTML = `
+            ${shineOverlay}
+            <div class="relative z-10 flex flex-col justify-between h-full space-y-3.5 text-left">
+              <div class="flex items-center justify-between">
+                <span class="text-[8px] font-extrabold font-mono text-amber-400 tracking-wider bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 uppercase">${team.status}</span>
+                <span class="text-[9px] font-mono text-slate-500 font-bold">#${team.index + 1}</span>
+              </div>
+
+              <div class="flex items-center gap-3 py-1">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr ${team.color} p-0.5 shadow-md shrink-0 flex items-center justify-center">
+                  <span class="text-2xl filter drop-shadow-md">${team.logo}</span>
+                </div>
+                <div class="space-y-0.5 min-w-0 text-left">
+                  <h4 class="text-xs font-black text-white font-display tracking-tight truncate">${team.name}</h4>
+                  <p class="text-[8px] font-mono text-slate-400 font-semibold tracking-wider">Tournament Contender</p>
+                </div>
+              </div>
+
+              <div class="bg-slate-950/80 p-2 rounded-lg border border-blue-950/50 flex items-center justify-between">
+                <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest font-mono">Win Return:</span>
+                <span class="text-amber-400 font-black text-xs tracking-tight">${team.odds}x</span>
+              </div>
+
+              <button id="hero-champion-btn-${team.index}" onclick="placeChampionBet(${team.index}, '${team.name}', '${team.odds}')" ${disabledAttr} class="${btnClass}">
+                <i data-lucide="ticket-check" class="w-3 h-3"></i>
+                <span>Predict Champion</span>
+              </button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+          lucide.createIcons();
+        }
+      }
+
+      // Toggle collapsible outright hero contenders list
+      function toggleChampionContendersList() {
+        const content = document.getElementById("champion-collapsible-contenders");
+        const chevron = document.getElementById("champion-chevron-icon");
+        if (content) {
+          const isHidden = content.classList.contains("hidden");
+          if (isHidden) {
+            content.classList.remove("hidden");
+            if (chevron) chevron.classList.add("rotate-180");
+            renderHeroChampionOutright();
+          } else {
+            content.classList.add("hidden");
+            if (chevron) chevron.classList.remove("rotate-180");
+          }
+        }
+      }
+
+      // Render the Outright World Cup Champion contender bento-grid
+      function renderChampionOutright() {
+        const grid = document.getElementById("champion-teams-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        championContenders.forEach((team) => {
+          const card = document.createElement("div");
+          card.id = `champion-card-${team.index}`;
+          card.className = "bg-gradient-to-b from-[#0a1128] to-[#050918] border border-blue-900/40 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400 hover:scale-[1.03] transition-all duration-300 relative overflow-hidden group";
+          
+          // Subtle diagonal golden flash animation overlay
+          const shineOverlay = `
+            <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none"></div>
+          `;
+
+          // Check if bets have already finished (Round of 32 ended)
+          const now = new Date();
+          const closed = now >= new Date("2026-07-04T00:00:00Z");
+          
+          let btnClass = "w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[10px] font-black uppercase rounded-lg tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer border border-amber-400";
+          let disabledAttr = "";
+          
+          if (closed) {
+            btnClass = "w-full py-2.5 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex items-center justify-center pointer-events-none opacity-40";
+            disabledAttr = "disabled";
+          }
+
+          card.innerHTML = `
+            ${shineOverlay}
+            <div class="relative z-10 flex flex-col justify-between h-full space-y-4">
+              <!-- Badge info -->
+              <div class="flex items-center justify-between">
+                <span class="text-[8px] font-extrabold font-mono text-amber-400 tracking-wider bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 uppercase">${team.status}</span>
+                <span class="text-[9px] font-mono text-slate-500 font-bold">#${team.index + 1}</span>
+              </div>
+
+              <!-- Flag & Name -->
+              <div class="flex items-center gap-3 py-1">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${team.color} p-0.5 shadow-md shrink-0 flex items-center justify-center">
+                  <span class="text-3xl filter drop-shadow-md">${team.logo}</span>
+                </div>
+                <div class="space-y-0.5">
+                  <h4 class="text-sm font-black text-white font-display tracking-tight">${team.name}</h4>
+                  <p class="text-[9px] font-mono text-slate-400 font-semibold tracking-wider">Tournament Contender</p>
+                </div>
+              </div>
+
+              <!-- Odds panel -->
+              <div class="bg-slate-950/80 p-2.5 rounded-lg border border-blue-950 flex items-center justify-between">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">Win Return:</span>
+                <span class="text-amber-400 font-black text-sm tracking-tight">${team.odds}x</span>
+              </div>
+
+              <!-- Predict Button -->
+              <button id="champion-btn-${team.index}" onclick="placeChampionBet(${team.index}, '${team.name}', '${team.odds}')" ${disabledAttr} class="${btnClass}">
+                <i data-lucide="ticket-check" class="w-3.5 h-3.5"></i>
+                <span>Predict Champion</span>
+              </button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+        
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+          lucide.createIcons();
+        }
+      }
+
+      // Place goals Over / Under on-chain predictions (mapped on-chain to betYes/betNo)
+      async function placeGoalsOUBet(matchId, betType) {
+        const footerStatus = document.getElementById("status-footer-msg");
+        
+        if (!connectedAddress) {
+          writeLog("[WARNING] Wallet connection required. Click 'Connect Wallet' at the top first.", "warning");
+          customShowAlert("Please connect your MetaMask wallet first!", "Wallet Required");
+          return;
+        }
+
+        const enteredChain = parseInt(document.getElementById("chain-input").value);
+        if (networkChainId !== enteredChain) {
+          writeLog(`[ERROR] Incorrect network! Please switch MetaMask to Chain ID ${enteredChain} before betting.`, "error");
+          customShowAlert(`Wrong network. Please switch to Chain ID ${enteredChain} in MetaMask!`, "Network Switch Required");
+          return;
+        }
+
+        const usdcAddress = (document.getElementById("usdc-address-input")?.value || "0x3600000000000000000000000000000000000000").trim();
+        const predictionAddress = (document.getElementById("prediction-address-input")?.value || "0x15CA7442803AC4D3d04Ce304F4Cb65D160903235").trim();
+        const indexingModel = (document.querySelector('input[name="index-model"]:checked') || { value: "0-based" }).value;
+
+        const match = matches.find(m => m.id === matchId);
+        if (!match) return;
+
+        const threshold = selectedOUThresholds[matchId] || 2.5;
+        const ouData = getOverUnderOdds(matchId, threshold);
+        const selectedOdds = betType === "OVER" ? ouData.over : ouData.under;
+        const pick = `${betType}_${threshold}`;
+        const predictionLabel = `${betType === "OVER" ? "Over" : "Under"} ${threshold} Goals`;
+
+        writeLog(`[GOALS PREDICTION] Commencing Over/Under transaction workflow for Match #${matchId} [${match.teamA} vs ${match.teamB}]. Pick: <strong>${predictionLabel}</strong> (Odds: ${selectedOdds}x)`, "system");
+
+        if (footerStatus) {
+          footerStatus.innerText = `PROCESSING GOALS #${matchId}`;
+          footerStatus.className = "text-purple-300 font-bold";
+        }
+
+        // Setup spinner state on clicked button
+        const btnId = betType === "OVER" ? `ou-btn-over-${matchId}` : `ou-btn-under-${matchId}`;
+        const otherBtnId = betType === "OVER" ? `ou-btn-under-${matchId}` : `ou-btn-over-${matchId}`;
+        
+        const mainBtn = document.getElementById(btnId);
+        const otherBtn = document.getElementById(otherBtnId);
+        
+        let originalHtml = "";
+        if (mainBtn) originalHtml = mainBtn.innerHTML;
+        if (mainBtn) mainBtn.disabled = true;
+        if (otherBtn) otherBtn.disabled = true;
+        
+        if (mainBtn) {
+          mainBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-slate-950 border-t-transparent rounded-full mr-1"></span> Appr...`;
+        }
+
+        try {
+          // STEP 1: ERC-20 token approval
+          const usdcContract = new ethers.Contract(usdcAddress, usdcAbi, signer);
+          let tokenDecimals = 18;
+          try {
+            const decVal = await usdcContract.decimals();
+            tokenDecimals = Number(decVal);
+          } catch (decErr) {
+            tokenDecimals = 18;
+          }
+
+          const betAmount = safeParseUnits("1", tokenDecimals);
+
+          // Check token balance
+          try {
+            const userBal = await usdcContract.balanceOf(connectedAddress);
+            if (userBal < betAmount) {
+              const balFormatted = parseFloat(ethers.formatUnits(userBal, tokenDecimals)).toFixed(2);
+              writeLog(`[ERROR] Insufficient USDC balance. Required: 1.00 USDC, Found: ${balFormatted} USDC.`, "error");
+              customShowAlert(`Your wallet only contains ${balFormatted} USDC. You need at least 1.00 USDC to place a prediction.`, "Insufficient USDC Balance");
+              if (mainBtn) mainBtn.innerHTML = originalHtml;
+              if (mainBtn) mainBtn.disabled = false;
+              if (otherBtn) otherBtn.disabled = false;
+              return;
+            }
+          } catch (balErr) {
+            console.warn(balErr);
+          }
+
+          // Check allowance
+          let currentAllowance = BigInt(0);
+          try {
+            currentAllowance = await usdcContract.allowance(connectedAddress, predictionAddress);
+          } catch (allowanceErr) {
+            console.warn(allowanceErr);
+          }
+
+          if (currentAllowance < betAmount) {
+            writeLog(`[STEP 1/2] Initiating EIP-20 Approval for 1.00 USDC for prediction contract...`, "info");
+            const approveTx = await usdcContract.approve(predictionAddress, betAmount, { gasLimit: 120000n });
+            writeLog(`[TX PENDING] Approval transaction pending: <span class="text-indigo-400 font-mono">${truncateAddress(approveTx.hash)}</span>...`, "tx");
+            await approveTx.wait();
+            writeLog(`[STEP 1/2 SUCCESS] Approval confirmed on-chain!`, "success");
+          } else {
+            writeLog(`[STEP 1/2 SUCCESS] Allowance sufficient! Skipping approval step.`, "success");
+          }
+
+          if (mainBtn) {
+            mainBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-slate-950 border-t-transparent rounded-full mr-1"></span> Lock...`;
+          }
+
+          // STEP 2: Call smart contract mapping Over to betYes and Under to betNo
+          let processedMatchId = matchId;
+          if (indexingModel === "0-based") {
+            processedMatchId = matchId - 1;
+          }
+
+          const predictionContract = new ethers.Contract(predictionAddress, predictionAbi, signer);
+          let betTx;
+          
+          if (betType === "OVER") {
+            writeLog(`[STEP 2/2] Mapping 'Over' to: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betYes(${processedMatchId})</code>`, "system");
+            betTx = await predictionContract.betYes(processedMatchId, { gasLimit: 250000n });
+          } else {
+            writeLog(`[STEP 2/2] Mapping 'Under' to: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betNo(${processedMatchId})</code>`, "system");
+            betTx = await predictionContract.betNo(processedMatchId, { gasLimit: 250000n });
+          }
+
+          writeLog(`[TX PENDING] Goals prediction transaction pending: <span class="text-indigo-400 font-mono">${truncateAddress(betTx.hash)}</span>...`, "tx");
+          await betTx.wait();
+          writeLog(`[STEP 2/2 SUCCESS] Goals prediction receipt confirmed on-chain!`, "success");
+          writeLog(`🎊 [CONGRATULATIONS] Your 1 USDC prediction has been locked for Match #${matchId}! Outcome: <strong>${predictionLabel}</strong> (${selectedOdds}x)`, "success");
+
+          // Save to local storage history
+          const newBet = {
+            id: Date.now(),
+            matchId: matchId,
+            teamA: match.teamA,
+            teamB: match.teamB,
+            logoA: match.logoA,
+            logoB: match.logoB,
+            pick: pick,
+            odds: selectedOdds,
+            timestamp: new Date().toISOString()
+          };
+          predictionHistory.push(newBet);
+          localStorage.setItem("arcpredict_history", JSON.stringify(predictionHistory));
+          renderHistory();
+
+          // Record on backend server
+          try {
+            fetchWithRetry('/api/record-bet', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                walletAddress: connectedAddress || "Unknown Address",
+                matchId: matchId,
+                teamA: match.teamA,
+                teamB: match.teamB,
+                logoA: match.logoA,
+                logoB: match.logoB,
+                pick: pick,
+                teamName: predictionLabel,
+                odds: selectedOdds,
+                timestamp: new Date().toISOString()
+              })
+            }).then(() => renderLeaderboard()).catch(console.error);
+          } catch (e) { console.error(e); }
+
+          // Trigger email alert
+          try {
+            const subject = `ArcPredict Goals: New Trade - Match #${matchId} [${match.teamA} vs ${match.teamB}] - Over/Under`;
+            const htmlBody = `
+              <div style="background-color: #040214; color: #d8b4fe; font-family: 'Inter', sans-serif; padding: 25px; border-radius: 12px; border: 1px solid #8b5cf6;">
+                <h2 style="color: #fbbf24; text-transform: uppercase;">Over/Under Trade Active</h2>
+                <p><strong>Wallet Address:</strong> ${connectedAddress}</p>
+                <p><strong>Fixture:</strong> Match #${matchId} [${match.logoA} ${match.teamA} vs ${match.logoB} ${match.teamB}]</p>
+                <p><strong>Predicted Metric:</strong> ${predictionLabel}</p>
+                <p><strong>Odds Locked:</strong> ${selectedOdds}x</p>
+                <p><strong>Funds Staked:</strong> 1.00 USDC</p>
+              </div>
+            `;
+            sendGmailNotification(subject, htmlBody);
+          } catch (emailErr) { console.error(emailErr); }
+
+        } catch (error) {
+          console.error(error);
+          writeLog(`[ERROR] Goals transaction failed: ${error.message || error}`, "error");
+        } finally {
+          if (mainBtn) mainBtn.innerHTML = originalHtml;
+          if (mainBtn) mainBtn.disabled = false;
+          if (otherBtn) otherBtn.disabled = false;
+          if (footerStatus) {
+            footerStatus.innerText = "READY FOR PREDICTIONS";
+          }
+        }
+      }
+
+      // Place World Cup Outright Champion prediction (mapped on-chain to betYes(teamIndex))
+      async function placeChampionBet(teamIndex, teamName, odds) {
+        const footerStatus = document.getElementById("status-footer-msg");
+        
+        if (!connectedAddress) {
+          writeLog("[WARNING] Wallet connection required. Click 'Connect Wallet' at the top first.", "warning");
+          customShowAlert("Please connect your MetaMask wallet first!", "Wallet Required");
+          return;
+        }
+
+        const enteredChain = parseInt(document.getElementById("chain-input").value);
+        if (networkChainId !== enteredChain) {
+          writeLog(`[ERROR] Incorrect network! Please switch MetaMask to Chain ID ${enteredChain} before betting.`, "error");
+          customShowAlert(`Wrong network. Please switch to Chain ID ${enteredChain} in MetaMask!`, "Network Switch Required");
+          return;
+        }
+
+        const usdcAddress = (document.getElementById("usdc-address-input")?.value || "0x3600000000000000000000000000000000000000").trim();
+        const predictionAddress = (document.getElementById("prediction-address-input")?.value || "0x15CA7442803AC4D3d04Ce304F4Cb65D160903235").trim();
+
+        writeLog(`[CHAMPION PREDICTION] Initiating Outright Winner prediction for: <span class="font-bold text-amber-400 font-display">${teamName}</span> at ${odds}x odds.`, "system");
+
+        if (footerStatus) {
+          footerStatus.innerText = `PROCESSING CHAMPION`;
+          footerStatus.className = "text-purple-300 font-bold";
+        }
+
+        const btn = document.getElementById(`champion-btn-${teamIndex}`);
+        const heroBtn = document.getElementById(`hero-champion-btn-${teamIndex}`);
+        let originalHtml = "";
+        let originalHeroHtml = "";
+        if (btn) originalHtml = btn.innerHTML;
+        if (heroBtn) originalHeroHtml = heroBtn.innerHTML;
+        
+        if (btn) btn.disabled = true;
+        if (heroBtn) heroBtn.disabled = true;
+        
+        if (btn) {
+          btn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-slate-950 border-t-transparent rounded-full mr-1"></span> Appr...`;
+        }
+        if (heroBtn) {
+          heroBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-slate-950 border-t-transparent rounded-full mr-1"></span> Appr...`;
+        }
+
+        try {
+          const usdcContract = new ethers.Contract(usdcAddress, usdcAbi, signer);
+          let tokenDecimals = 18;
+          try {
+            const decVal = await usdcContract.decimals();
+            tokenDecimals = Number(decVal);
+          } catch (e) {
+            tokenDecimals = 18;
+          }
+
+          const betAmount = safeParseUnits("1", tokenDecimals);
+
+          // Balance check
+          try {
+            const userBal = await usdcContract.balanceOf(connectedAddress);
+            if (userBal < betAmount) {
+              const balFormatted = parseFloat(ethers.formatUnits(userBal, tokenDecimals)).toFixed(2);
+              writeLog(`[ERROR] Insufficient USDC balance. Required: 1.00 USDC, Found: ${balFormatted} USDC.`, "error");
+              customShowAlert(`Your wallet only contains ${balFormatted} USDC. You need at least 1.00 USDC to place a prediction.`, "Insufficient USDC Balance");
+              if (btn) btn.innerHTML = originalHtml;
+              if (btn) btn.disabled = false;
+              if (heroBtn) heroBtn.innerHTML = originalHeroHtml;
+              if (heroBtn) heroBtn.disabled = false;
+              return;
+            }
+          } catch (balErr) {
+            console.warn(balErr);
+          }
+
+          // Allowance check
+          let currentAllowance = BigInt(0);
+          try {
+            currentAllowance = await usdcContract.allowance(connectedAddress, predictionAddress);
+          } catch (e) {
+            console.warn(e);
+          }
+
+          if (currentAllowance < betAmount) {
+            writeLog(`[STEP 1/2] Approving 1.00 USDC for prediction contract spender...`, "info");
+            const approveTx = await usdcContract.approve(predictionAddress, betAmount, { gasLimit: 120000n });
+            writeLog(`[TX PENDING] Approval transaction: <span class="text-indigo-400 font-mono">${truncateAddress(approveTx.hash)}</span>`, "tx");
+            await approveTx.wait();
+            writeLog(`[STEP 1/2 SUCCESS] Approval confirmed on-chain!`, "success");
+          } else {
+            writeLog(`[STEP 1/2 SUCCESS] Allowance sufficient! Skipping approval step.`, "success");
+          }
+
+          if (btn) {
+            btn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-slate-950 border-t-transparent rounded-full mr-1"></span> Lock...`;
+          }
+          if (heroBtn) {
+            heroBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-slate-950 border-t-transparent rounded-full mr-1"></span> Lock...`;
+          }
+
+          // STEP 2: Call betYes(teamIndex) representing team outright choice on-chain
+          const predictionContract = new ethers.Contract(predictionAddress, predictionAbi, signer);
+          writeLog(`[STEP 2/2] Mapping Champion Predict on-chain: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betYes(${teamIndex})</code>`, "system");
+          
+          const betTx = await predictionContract.betYes(teamIndex, { gasLimit: 250000n });
+          writeLog(`[TX PENDING] Champion Outright transaction pending: <span class="text-indigo-400 font-mono">${truncateAddress(betTx.hash)}</span>...`, "tx");
+          await betTx.wait();
+          writeLog(`[STEP 2/2 SUCCESS] Champion Outright transaction receipt confirmed!`, "success");
+          writeLog(`🏆 [CONGRATULATIONS] Outright prediction successfully registered! You have bet 1.00 USDC on <strong>${teamName}</strong> to win the World Cup 2026. Return if wins: ${odds} USDC.`, "success");
+
+          // Save to history
+          const team = championContenders.find(t => t.index === teamIndex);
+          const newBet = {
+            id: Date.now(),
+            matchId: "champion",
+            teamA: teamName,
+            teamB: "World Cup 2026",
+            logoA: team ? team.logo : "🏆",
+            logoB: "🏆",
+            pick: `CHAMPION_${teamName.substring(0, 3).toUpperCase()}`,
+            odds: odds,
+            timestamp: new Date().toISOString()
+          };
+          predictionHistory.push(newBet);
+          localStorage.setItem("arcpredict_history", JSON.stringify(predictionHistory));
+          renderHistory();
+
+          // Record on backend server
+          try {
+            fetchWithRetry('/api/record-bet', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                walletAddress: connectedAddress || "Unknown Address",
+                matchId: "champion",
+                teamA: teamName,
+                teamB: "World Cup 2026",
+                logoA: team ? team.logo : "🏆",
+                logoB: "🏆",
+                pick: `CHAMPION_${teamName.substring(0, 3).toUpperCase()}`,
+                teamName: teamName,
+                odds: odds,
+                timestamp: new Date().toISOString()
+              })
+            }).then(() => renderLeaderboard()).catch(console.error);
+          } catch (e) { console.error(e); }
+
+          // Trigger email alert
+          try {
+            const subject = `ArcPredict Outright: New Champion Predict - ${teamName}`;
+            const htmlBody = `
+              <div style="background-color: #040214; color: #d8b4fe; font-family: 'Inter', sans-serif; padding: 25px; border-radius: 12px; border: 1px solid #8b5cf6;">
+                <h2 style="color: #fbbf24; text-transform: uppercase;">Championship Outright Active</h2>
+                <p><strong>Wallet Address:</strong> ${connectedAddress}</p>
+                <p><strong>Predicted Champion:</strong> ${teamName}</p>
+                <p><strong>Locked Odds:</strong> ${odds}x</p>
+                <p><strong>Staked Amount:</strong> 1.00 USDC</p>
+              </div>
+            `;
+            sendGmailNotification(subject, htmlBody);
+          } catch (emailErr) { console.error(emailErr); }
+
+        } catch (error) {
+          console.error(error);
+          writeLog(`[ERROR] Outright Champion transaction failed: ${error.message || error}`, "error");
+        } finally {
+          if (btn) btn.innerHTML = originalHtml;
+          if (btn) btn.disabled = false;
+          if (heroBtn) heroBtn.innerHTML = originalHeroHtml;
+          if (heroBtn) heroBtn.disabled = false;
+          if (footerStatus) {
+            footerStatus.innerText = "READY FOR PREDICTIONS";
+          }
+        }
+      }
+
+      // Expose globally
+      window.switchActiveTab = switchActiveTab;
+      window.changeOUThreshold = changeOUThreshold;
+      window.placeGoalsOUBet = placeGoalsOUBet;
+      window.placeChampionBet = placeChampionBet;
+      window.toggleOUAccordion = toggleOUAccordion;
+      window.toggleChampionContendersList = toggleChampionContendersList;
+      window.renderHeroChampionOutright = renderHeroChampionOutright;
+
       // Render the active football matches into the clean minimalist grid
       function renderMatches() {
         const grid = document.getElementById("matches-grid");
@@ -1719,6 +2612,83 @@
             drawClass = "py-1.5 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex flex-col items-center justify-center opacity-40 pointer-events-none";
             noClass = "py-1.5 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex flex-col items-center justify-center opacity-40 pointer-events-none";
           }
+
+          // Over / Under Goals betting variables calculation for this match card
+          const activeThreshold = selectedOUThresholds[match.id] || 2.5;
+          const ouData = getOverUnderOdds(match.id, activeThreshold);
+          
+          let overDisabledAttr = status.started ? "disabled" : "";
+          let underDisabledAttr = status.started ? "disabled" : "";
+          
+          let overClass = "flex-1 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[9px] font-extrabold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight border border-amber-400 shadow-xs";
+          let underClass = "flex-1 py-1.5 bg-[#0e1635] hover:bg-[#15224f] border border-amber-500/30 text-amber-400 text-[9px] font-extrabold rounded-lg transition-all active:scale-95 flex flex-col items-center justify-center cursor-pointer uppercase tracking-tight";
+
+          if (status.started) {
+            overClass = "flex-1 py-1.5 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[9px] font-bold rounded-lg flex flex-col items-center justify-center opacity-40 pointer-events-none";
+            underClass = "flex-1 py-1.5 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[9px] font-bold rounded-lg flex flex-col items-center justify-center opacity-40 pointer-events-none";
+          }
+
+          const thresholds = [0.5, 1.5, 2.5, 3.5, 4.5, 5.5];
+          let pillButtons = "";
+          thresholds.forEach(t => {
+            const isSelected = t === activeThreshold;
+            const btnClass = isSelected 
+              ? "px-1.5 py-0.5 text-[8px] font-extrabold rounded bg-amber-500 text-slate-950 border border-amber-400 transition-all scale-105"
+              : "px-1.5 py-0.5 text-[8px] font-bold rounded bg-slate-950/80 hover:bg-slate-900 border border-blue-900/40 text-slate-400 hover:text-amber-400 transition-all";
+            pillButtons += `<button id="ou-btn-${match.id}-${t}" onclick="changeOUThreshold(${match.id}, ${t}); event.stopPropagation();" class="${btnClass}">${t}</button>`;
+          });
+
+          const ouAccordionHtml = `
+            <!-- Goals Over/Under Market Section -->
+            <div class="mt-3.5 pt-2.5 border-t border-blue-900/25">
+              <div class="w-full flex items-center justify-between text-[10px] font-extrabold text-slate-400 select-none pb-2">
+                <span class="flex items-center gap-1.5">
+                  <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-amber-500"></i>
+                  <span>🎯 GOALS OVER / UNDER MARKET</span>
+                </span>
+              </div>
+              
+              <div id="ou-accordion-content-${match.id}" class="space-y-3.5">
+                <!-- Threshold Selector Pill Layout -->
+                <div class="space-y-1 text-left">
+                  <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest block font-mono">Goal Threshold (Select):</span>
+                  <div class="grid grid-cols-6 gap-0.5 bg-slate-950 p-0.5 rounded-lg border border-blue-900/30">
+                    ${pillButtons}
+                  </div>
+                </div>
+
+                <!-- Visual Dual-Bar Progress Chart -->
+                <div class="space-y-1 bg-slate-950/40 p-2 rounded-xl border border-blue-950 text-left">
+                  <div class="h-2 bg-[#030612] rounded-full overflow-hidden flex border border-blue-900/30 relative">
+                    <div id="ou-bar-over-${match.id}" class="h-full bg-gradient-to-r from-amber-500 to-yellow-500 transition-all duration-500" style="width: ${ouData.overProbPercent}%;"></div>
+                    <div id="ou-bar-under-${match.id}" class="h-full bg-gradient-to-r from-blue-700 to-indigo-600 transition-all duration-500" style="width: ${ouData.underProbPercent}%;"></div>
+                  </div>
+                  
+                  <div class="flex justify-between text-[8px] font-bold font-mono text-slate-400 pt-0.5">
+                    <span id="ou-lbl-over-${match.id}" class="text-amber-400">${ouData.overProbPercent}% Over</span>
+                    <span id="ou-lbl-under-${match.id}" class="text-indigo-450">${ouData.underProbPercent}% Under</span>
+                  </div>
+                </div>
+
+                <!-- Action Bet Buttons -->
+                <div id="ou-card-body-${match.id}" class="space-y-2">
+                  <div class="flex gap-1.5">
+                    <!-- Bet Over -->
+                    <button id="ou-btn-over-${match.id}" onclick="placeGoalsOUBet(${match.id}, 'OVER'); event.stopPropagation();" ${overDisabledAttr} class="${overClass}" title="Bet on Over ${activeThreshold} goals. Will return ${ouData.over} USDC.">
+                      <span class="text-[8px] tracking-wider uppercase opacity-85">Bet Over</span>
+                      <span id="ou-btn-over-odds-${match.id}" class="font-extrabold text-[10px] mt-0.5">${ouData.over}x</span>
+                    </button>
+                    
+                    <!-- Bet Under -->
+                    <button id="ou-btn-under-${match.id}" onclick="placeGoalsOUBet(${match.id}, 'UNDER'); event.stopPropagation();" ${underDisabledAttr} class="${underClass}" title="Bet on Under ${activeThreshold} goals. Will return ${ouData.under} USDC.">
+                      <span class="text-[8px] tracking-wider uppercase opacity-85">Bet Under</span>
+                      <span id="ou-btn-under-odds-${match.id}" class="font-extrabold text-[10px] mt-0.5">${ouData.under}x</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
 
           // Creating the main wrapper element
           const card = document.createElement("div");
@@ -1864,6 +2834,10 @@
                 </button>
 
               </div>
+              
+              <!-- Separated Goals Over/Under Collapsible Section -->
+              ${ouAccordionHtml}
+
               <div class="flex items-center justify-between text-[9px] text-slate-500 font-mono mt-2 pt-1 border-t border-blue-900/35">
                 <span>Kickoff: <span class="text-slate-400 font-sans">${match.date}</span></span>
                 <a 

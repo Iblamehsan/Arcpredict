@@ -133,9 +133,59 @@ app.get("/api/leaderboard", (req, res) => {
       }
       addressStats[addr].total += 1;
       
-      const winner = getMatchWinner(parseInt(bet.matchId));
-      if (winner !== null) {
-        if (bet.pick === winner) {
+      let isWin = false;
+      let resolved = false;
+
+      if (bet.matchId === "champion") {
+        const now = new Date();
+        const tournamentEnd = new Date("2026-07-04T00:00:00Z"); // Resolved after round of 32 finishes
+        if (now >= tournamentEnd) {
+          resolved = true;
+          if (bet.teamName === "Brazil") {
+            isWin = true;
+          }
+        }
+      } else {
+        const mId = parseInt(bet.matchId);
+        const match = serverMatches.find(m => m.id === mId);
+        if (match) {
+          const kickoffTime = new Date(match.kickoff);
+          const now = new Date();
+          const isCompleted = now.getTime() >= (kickoffTime.getTime() + 7200000);
+          
+          if (isCompleted) {
+            resolved = true;
+            if (bet.pick && (bet.pick.startsWith("OVER_") || bet.pick.startsWith("UNDER_"))) {
+              // Over / Under goals bet resolution
+              const goalMinutesA = [(match.id * 17) % 85 + 5, (match.id * 37) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
+              const goalMinutesB = [(match.id * 29) % 85 + 5, (match.id * 47) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
+              const maxA = parseFloat(match.oddsYes) < parseFloat(match.oddsNo) ? 3 : 2;
+              const maxB = parseFloat(match.oddsNo) < parseFloat(match.oddsYes) ? 3 : 2;
+              const activeA = goalMinutesA.slice(0, maxA);
+              const activeB = goalMinutesB.slice(0, maxB);
+              const scoreA = activeA.length;
+              const scoreB = activeB.length;
+              const totalGoals = scoreA + scoreB;
+              
+              const threshold = parseFloat(bet.pick.split("_")[1]);
+              if (bet.pick.startsWith("OVER_")) {
+                isWin = totalGoals > threshold;
+              } else {
+                isWin = totalGoals < threshold;
+              }
+            } else {
+              // Standard 1X2 outcome
+              const winner = getMatchWinner(mId);
+              if (winner !== null && bet.pick === winner) {
+                isWin = true;
+              }
+            }
+          }
+        }
+      }
+
+      if (resolved) {
+        if (isWin) {
           addressStats[addr].wins += 1;
           const returnMultiplier = parseFloat(bet.odds) || 1.0;
           addressStats[addr].profit += (returnMultiplier - 1.0);
@@ -164,7 +214,10 @@ app.get("/api/leaderboard", (req, res) => {
       const displayAddr = addr.length > 12 ? (addr.substring(0, 8) + "..." + addr.substring(addr.length - 4)) : addr;
       
       // Match seed by truncated format or exact
-      const seedIndex = mergedList.findIndex(p => p.walletAddress.toLowerCase() === displayAddr.toLowerCase() || p.walletAddress.toLowerCase() === addr.toLowerCase());
+      const seedIndex = mergedList.findIndex(p => {
+        const pAddr = p.walletAddress || "";
+        return pAddr.toLowerCase() === displayAddr.toLowerCase() || pAddr.toLowerCase() === addr.toLowerCase();
+      });
       const stats = addressStats[addr];
       
       if (seedIndex >= 0) {
