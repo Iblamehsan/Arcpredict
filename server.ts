@@ -475,9 +475,11 @@ app.post("/api/match-scores", (req, res) => {
       return res.status(400).json({ error: "Missing matchId" });
     }
     
+    const parsedA = parseInt(scoreA, 10);
+    const parsedB = parseInt(scoreB, 10);
     scoreOverrides[matchId] = {
-      scoreA: parseInt(scoreA) !== undefined ? parseInt(scoreA) : 0,
-      scoreB: parseInt(scoreB) !== undefined ? parseInt(scoreB) : 0,
+      scoreA: isNaN(parsedA) ? 0 : parsedA,
+      scoreB: isNaN(parsedB) ? 0 : parsedB,
       completed: !!completed,
       timeLabel: timeLabel || (completed ? "FT" : "LIVE")
     };

@@ -711,11 +711,19 @@
       }
 
       function getMatchStatus(match) {
+        if (!match) return { started: false, completed: false };
         const kickoffTime = new Date(match.kickoff);
         const now = new Date();
         const isPastKickoff = now >= kickoffTime;
-        // Completed is past kickoff + 2 hours (7200000ms)
         const isCompleted = now >= new Date(kickoffTime.getTime() + 7200000);
+        
+        if (matchScoreOverrides && matchScoreOverrides[match.id]) {
+          const o = matchScoreOverrides[match.id];
+          return {
+            started: true,
+            completed: o.completed !== undefined ? o.completed : isCompleted
+          };
+        }
         
         return {
           started: isPastKickoff || isCompleted,
@@ -1245,17 +1253,8 @@
             if (score.completed) {
               let isWin = false;
               if (pick && (pick.startsWith("OVER_") || pick.startsWith("UNDER_"))) {
-                // Determine Over/Under winner
-                const goalMinutesA = [(match.id * 17) % 85 + 5, (match.id * 37) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
-                const goalMinutesB = [(match.id * 29) % 85 + 5, (match.id * 47) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
-                const maxA = parseFloat(match.oddsYes) < parseFloat(match.oddsNo) ? 3 : 2;
-                const maxB = parseFloat(match.oddsNo) < parseFloat(match.oddsYes) ? 3 : 2;
-                const activeA = goalMinutesA.slice(0, maxA);
-                const activeB = goalMinutesB.slice(0, maxB);
-                const scoreA = activeA.length;
-                const scoreB = activeB.length;
-                const totalGoals = scoreA + scoreB;
-                
+                // Determine Over/Under winner based on real score override
+                const totalGoals = score.scoreA + score.scoreB;
                 const threshold = parseFloat(pick.split("_")[1]);
                 if (pick.startsWith("OVER_")) {
                   isWin = totalGoals > threshold;
@@ -2911,6 +2910,11 @@
         // Initialize any dynamically injected lucide icons in cards
         if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
           lucide.createIcons();
+        }
+        
+        // Instantly populate live scoreboard ribbons and countdowns
+        if (typeof updateCountdowns === "function") {
+          updateCountdowns();
         }
       }
 
