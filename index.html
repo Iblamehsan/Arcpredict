@@ -957,6 +957,20 @@
         console.error("Failed to load prediction history from local storage:", e);
       }
 
+      let matchScoreOverrides = {};
+
+      async function loadMatchScoreOverrides() {
+        try {
+          const res = await fetch("/api/match-scores");
+          const data = await res.json();
+          if (data.success) {
+            matchScoreOverrides = data.scores || {};
+          }
+        } catch (err) {
+          console.error("Failed to load match score overrides", err);
+        }
+      }
+
       // Dynamic Match Score calculations
       function getMatchScore(match) {
         if (!match) return null;
@@ -964,6 +978,20 @@
         const now = new Date();
         const isPastKickoff = now >= kickoffTime;
         const isCompleted = now >= new Date(kickoffTime.getTime() + 7200000); // 2 hours
+        
+        // Check for server-side score overrides first!
+        if (matchScoreOverrides && matchScoreOverrides[match.id]) {
+          const o = matchScoreOverrides[match.id];
+          const completedState = o.completed !== undefined ? o.completed : isCompleted;
+          return {
+            started: true,
+            completed: completedState,
+            scoreA: o.scoreA,
+            scoreB: o.scoreB,
+            display: `${o.scoreA} - ${o.scoreB}`,
+            time: o.timeLabel || (completedState ? "FT" : "LIVE")
+          };
+        }
         
         if (!isPastKickoff) {
           return { started: false, completed: false, scoreA: 0, scoreB: 0, display: "0 - 0", time: "00'" };
@@ -1382,7 +1410,7 @@
       };
 
       // Initialize UI on Load
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", async () => {
         try {
           // Luxury Ambient Gold Particles Animation
           const canvas = document.getElementById("luxury-ambient-canvas");
@@ -1463,6 +1491,7 @@
           }
           
           // Populate Matches Loops
+          await loadMatchScoreOverrides();
           renderMatches();
 
           // Render initial prediction history list
@@ -1474,6 +1503,15 @@
           setInterval(updateCountdowns, 1000);
           setInterval(renderLeaderboard, 15000);
           setInterval(simulateMarketFluctuations, 4000);
+
+          // Periodically sync live score overrides from server to keep scoreboard exact and live
+          setInterval(async () => {
+            await loadMatchScoreOverrides();
+            renderMatches();
+            if (typeof renderGoalsOU === "function") {
+              renderGoalsOU();
+            }
+          }, 5000);
 
           // Safe helper to add listeners check
           function safeAddListener(id, event, callback) {

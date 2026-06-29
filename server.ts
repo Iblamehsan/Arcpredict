@@ -78,19 +78,75 @@ const serverMatches = [
   { id: 16, group: "Round of 32", teamA: "Colombia", teamB: "Ghana", logoA: "🇨🇴", logoB: "🇬🇭", oddsYes: "1.65", oddsDraw: "3.15", oddsNo: "3.65", probYes: "51%", probDraw: "26%", probNo: "23%", date: "July 4, 01:30 UTC", kickoff: "2026-07-04T01:30:00Z" }
 ];
 
-// Helper to determine the winner of a match deterministically based on match kickoff and current time
-function getMatchWinner(matchId: number): "YES" | "NO" | "DRAW" | null {
+// Persistent match scores system
+interface ScoreOverride {
+  scoreA: number;
+  scoreB: number;
+  completed?: boolean;
+  timeLabel?: string;
+}
+
+let scoreOverrides: { [matchId: number]: ScoreOverride } = {};
+const SCORES_FILE = path.join(process.cwd(), "scores.json");
+
+function loadScores() {
+  try {
+    if (fs.existsSync(SCORES_FILE)) {
+      const data = fs.readFileSync(SCORES_FILE, "utf-8");
+      scoreOverrides = JSON.parse(data);
+    } else {
+      // Default: Canada vs South Africa ended 1-0 for Canada.
+      // TeamA is South Africa (0) and TeamB is Canada (1).
+      scoreOverrides = {
+        1: { scoreA: 0, scoreB: 1, completed: true, timeLabel: "FT" }
+      };
+      saveScores();
+    }
+  } catch (err) {
+    console.error("Error reading scores.json:", err);
+  }
+}
+
+function saveScores() {
+  try {
+    fs.writeFileSync(SCORES_FILE, JSON.stringify(scoreOverrides, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error writing scores.json:", err);
+  }
+}
+
+// Perform initial score load
+loadScores();
+
+// Helper to calculate live or final match score
+function getMatchScore(matchId: number) {
   const match = serverMatches.find(m => m.id === matchId);
   if (!match) return null;
   
   const kickoffTime = new Date(match.kickoff);
   const now = new Date();
+  const isPastKickoff = now >= kickoffTime;
+  const isCompleted = now >= new Date(kickoffTime.getTime() + 7200000); // 2 hours
   
-  // Completed if current time is >= kickoff + 2 hours (7200000 ms)
-  const isCompleted = now.getTime() >= (kickoffTime.getTime() + 7200000);
-  if (!isCompleted) return null;
+  if (scoreOverrides[matchId]) {
+    const o = scoreOverrides[matchId];
+    return {
+      started: true,
+      completed: o.completed !== undefined ? o.completed : isCompleted,
+      scoreA: o.scoreA,
+      scoreB: o.scoreB,
+      display: `${o.scoreA} - ${o.scoreB}`,
+      time: o.timeLabel || (isCompleted ? "FT" : "LIVE")
+    };
+  }
+
+  if (!isPastKickoff) {
+    return { started: false, completed: false, scoreA: 0, scoreB: 0, display: "0 - 0", time: "00'" };
+  }
   
-  // Seeded deterministic goals based on match ID (same as client-side)
+  const elapsedMs = now.getTime() - kickoffTime.getTime();
+  const elapsedMinutes = Math.min(120, Math.floor(elapsedMs / 60000));
+  
   const goalMinutesA = [(match.id * 17) % 85 + 5, (match.id * 37) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
   const goalMinutesB = [(match.id * 29) % 85 + 5, (match.id * 47) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
   
@@ -100,11 +156,40 @@ function getMatchWinner(matchId: number): "YES" | "NO" | "DRAW" | null {
   const activeA = goalMinutesA.slice(0, maxA);
   const activeB = goalMinutesB.slice(0, maxB);
   
-  let scoreA = activeA.length;
-  let scoreB = activeB.length;
+  let scoreA = 0;
+  let scoreB = 0;
   
-  if (scoreA > scoreB) return "YES";
-  if (scoreA < scoreB) return "NO";
+  activeA.forEach(m => {
+    if (elapsedMinutes >= m) scoreA++;
+  });
+  
+  activeB.forEach(m => {
+    if (elapsedMinutes >= m) scoreB++;
+  });
+  
+  let timeLabel = "";
+  if (isCompleted) {
+    timeLabel = "FT";
+  } else {
+    timeLabel = elapsedMinutes <= 90 ? `${elapsedMinutes}'` : `90+${elapsedMinutes - 90}'`;
+  }
+  
+  return {
+    started: true,
+    completed: isCompleted,
+    scoreA,
+    scoreB,
+    display: `${scoreA} - ${scoreB}`,
+    time: timeLabel
+  };
+}
+
+// Helper to determine the winner of a match deterministically based on match kickoff and current time
+function getMatchWinner(matchId: number): "YES" | "NO" | "DRAW" | null {
+  const score = getMatchScore(matchId);
+  if (!score || !score.started || !score.completed) return null;
+  if (score.scoreA > score.scoreB) return "YES";
+  if (score.scoreA < score.scoreB) return "NO";
   return "DRAW";
 }
 
@@ -149,24 +234,12 @@ app.get("/api/leaderboard", (req, res) => {
         const mId = parseInt(bet.matchId);
         const match = serverMatches.find(m => m.id === mId);
         if (match) {
-          const kickoffTime = new Date(match.kickoff);
-          const now = new Date();
-          const isCompleted = now.getTime() >= (kickoffTime.getTime() + 7200000);
-          
-          if (isCompleted) {
+          const score = getMatchScore(mId);
+          if (score && score.completed) {
             resolved = true;
             if (bet.pick && (bet.pick.startsWith("OVER_") || bet.pick.startsWith("UNDER_"))) {
               // Over / Under goals bet resolution
-              const goalMinutesA = [(match.id * 17) % 85 + 5, (match.id * 37) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
-              const goalMinutesB = [(match.id * 29) % 85 + 5, (match.id * 47) % 85 + 5].filter((val, i, arr) => arr.indexOf(val) === i);
-              const maxA = parseFloat(match.oddsYes) < parseFloat(match.oddsNo) ? 3 : 2;
-              const maxB = parseFloat(match.oddsNo) < parseFloat(match.oddsYes) ? 3 : 2;
-              const activeA = goalMinutesA.slice(0, maxA);
-              const activeB = goalMinutesB.slice(0, maxB);
-              const scoreA = activeA.length;
-              const scoreB = activeB.length;
-              const totalGoals = scoreA + scoreB;
-              
+              const totalGoals = score.scoreA + score.scoreB;
               const threshold = parseFloat(bet.pick.split("_")[1]);
               if (bet.pick.startsWith("OVER_")) {
                 isWin = totalGoals > threshold;
@@ -381,6 +454,38 @@ app.get("/api/admin/bets", (req, res) => {
     return res.json({ success: true, bets });
   } catch (err) {
     return res.status(500).json({ error: "Failed to load bets" });
+  }
+});
+
+// GET matches and their current live/overridden scores
+app.get("/api/match-scores", (req, res) => {
+  return res.json({ success: true, scores: scoreOverrides });
+});
+
+// Update a match score override (Secure, requires Admin authentication)
+app.post("/api/match-scores", (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || authHeader !== `Bearer ${ADMIN_TOKEN}`) {
+      return res.status(401).json({ error: "Unauthorized access" });
+    }
+    
+    const { matchId, scoreA, scoreB, completed, timeLabel } = req.body;
+    if (!matchId) {
+      return res.status(400).json({ error: "Missing matchId" });
+    }
+    
+    scoreOverrides[matchId] = {
+      scoreA: parseInt(scoreA) !== undefined ? parseInt(scoreA) : 0,
+      scoreB: parseInt(scoreB) !== undefined ? parseInt(scoreB) : 0,
+      completed: !!completed,
+      timeLabel: timeLabel || (completed ? "FT" : "LIVE")
+    };
+    
+    saveScores();
+    return res.json({ success: true, scores: scoreOverrides });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || "Failed to update score" });
   }
 });
 
@@ -612,6 +717,22 @@ app.get("/management", (req, res) => {
           </div>
         </div>
 
+        <!-- Real-time Match Score Board & Live Controls -->
+        <div class="bg-[#0a0724] border border-purple-900/60 rounded-2xl overflow-hidden shadow-2xl">
+          <div class="p-5 border-b border-purple-950 bg-[#0e0a30]/80">
+            <h3 class="text-base font-bold font-display text-white">🏆 Real-time Match Score Board & Live Controls</h3>
+            <p class="text-[11px] text-purple-300">Override and correct score status for live and finished fixtures of World Cup 2026. All active prediction evaluations instantly follow these scores.</p>
+          </div>
+          
+          <div class="p-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="scores-control-grid">
+              <div class="col-span-1 md:col-span-2 text-center text-purple-400 font-mono py-6">
+                Loading live scoreboard controllers...
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </main>
@@ -638,6 +759,154 @@ app.get("/management", (req, res) => {
         }
       });
 
+      // Complete match layout list for the central controllers
+      const serverMatches = [
+        { id: 1, teamA: "South Africa", teamB: "Canada", logoA: "🇿🇦", logoB: "🇨🇦" },
+        { id: 2, teamA: "Brazil", teamB: "Japan", logoA: "🇧🇷", logoB: "🇯🇵" },
+        { id: 3, teamA: "Germany", teamB: "Paraguay", logoA: "🇩🇪", logoB: "🇵🇾" },
+        { id: 4, teamA: "Netherlands", teamB: "Morocco", logoA: "🇳🇱", logoB: "🇲🇦" },
+        { id: 5, teamA: "Ivory Coast", teamB: "Norway", logoA: "🇨🇮", logoB: "🇳🇴" },
+        { id: 6, teamA: "France", teamB: "Sweden", logoA: "🇫🇷", logoB: "🇸🇪" },
+        { id: 7, teamA: "Mexico", teamB: "Ecuador", logoA: "🇲🇽", logoB: "🇪🇨" },
+        { id: 8, teamA: "England", teamB: "DR Congo", logoA: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", logoB: "🇨🇩" },
+        { id: 9, teamA: "Belgium", teamB: "Senegal", logoA: "🇧🇪", logoB: "🇸🇳" },
+        { id: 10, teamA: "USA", teamB: "Bosnia & Herzegovina", logoA: "🇺🇸", logoB: "🇧🇦" },
+        { id: 11, teamA: "Spain", teamB: "Austria", logoA: "🇪🇸", logoB: "🇦🇹" },
+        { id: 12, teamA: "Portugal", teamB: "Croatia", logoA: "🇵🇹", logoB: "🇭🇷" },
+        { id: 13, teamA: "Switzerland", teamB: "Algeria", logoA: "🇨🇭", logoB: "🇩🇿" },
+        { id: 14, teamA: "Australia", teamB: "Egypt", logoA: "🇦🇺", logoB: "🇪🇬" },
+        { id: 15, teamA: "Argentina", teamB: "Cape Verde", logoA: "🇦🇷", logoB: "🇨🇻" },
+        { id: 16, teamA: "Colombia", teamB: "Ghana", logoA: "🇨🇴", logoB: "🇬🇭" }
+      ];
+
+      let scoreOverrides = {};
+
+      async function loadScores() {
+        try {
+          const res = await fetch("/api/match-scores");
+          const data = await res.json();
+          if (data.success) {
+            scoreOverrides = data.scores || {};
+          }
+          renderScoresControl();
+        } catch (err) {
+          console.error("Failed to load scores", err);
+        }
+      }
+
+      function renderScoresControl() {
+        const grid = document.getElementById("scores-control-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        serverMatches.forEach(match => {
+          const over = scoreOverrides[match.id] || { scoreA: 0, scoreB: 0, completed: false, timeLabel: "" };
+          const card = document.createElement("div");
+          card.className = "p-3 bg-purple-950/25 border border-purple-900/40 rounded-xl flex flex-col justify-between gap-3 text-xs";
+          card.innerHTML = \`
+            <div class="flex items-center justify-between border-b border-purple-900/30 pb-2">
+              <span class="font-bold text-white font-mono">Match #\${match.id}</span>
+              <span class="text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold \${over.completed ? "bg-green-950/60 text-green-400 border border-green-900/30" : "bg-purple-950 text-purple-300"}">
+                \${over.timeLabel || (over.completed ? "FT" : "LIVE")}
+              </span>
+            </div>
+            
+            <div class="flex items-center justify-between gap-4 py-1">
+              <div class="flex items-center gap-2 w-1/3">
+                <span class="text-base">\${match.logoA}</span>
+                <span class="font-medium text-slate-200 truncate font-display">\${match.teamA}</span>
+              </div>
+              
+              <div class="flex items-center gap-2 justify-center w-1/3">
+                <input 
+                  type="number" 
+                  id="score-a-\${match.id}" 
+                  value="\${over.scoreA}" 
+                  class="w-10 bg-[#030112] border border-purple-900/60 rounded text-center py-1 text-white font-bold text-xs"
+                  min="0"
+                />
+                <span class="text-purple-400 font-bold">:</span>
+                <input 
+                  type="number" 
+                  id="score-b-\${match.id}" 
+                  value="\${over.scoreB}" 
+                  class="w-10 bg-[#030112] border border-purple-900/60 rounded text-center py-1 text-white font-bold text-xs"
+                  min="0"
+                />
+              </div>
+              
+              <div class="flex items-center gap-2 justify-end w-1/3 text-right">
+                <span class="font-medium text-slate-200 truncate font-display mr-2">\${match.teamB}</span>
+                <span class="text-base">\${match.logoB}</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-between gap-3 pt-2 border-t border-purple-900/30">
+              <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-purple-300 select-none">
+                <input 
+                  type="checkbox" 
+                  id="completed-\${match.id}" 
+                  \${over.completed ? "checked" : ""} 
+                  class="rounded bg-[#030112] border-purple-900 text-purple-600 focus:ring-0"
+                />
+                Completed (FT)
+              </label>
+              
+              <input 
+                type="text" 
+                id="time-label-\${match.id}" 
+                value="\${over.timeLabel || ""}" 
+                placeholder="FT or 65'" 
+                class="bg-[#030112] border border-purple-900/60 rounded px-2 py-0.5 text-[10px] text-purple-200 w-24 text-center placeholder-purple-800"
+              />
+              
+              <button 
+                onclick="saveMatchScore(\${match.id})" 
+                class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] rounded transition-all active:scale-95 cursor-pointer"
+              >
+                Save
+              </button>
+            </div>
+          \`;
+          grid.appendChild(card);
+        });
+      }
+
+      async function saveMatchScore(matchId) {
+        const scoreA = document.getElementById(\`score-a-\${matchId}\`).value;
+        const scoreB = document.getElementById(\`score-b-\${matchId}\`).value;
+        const completed = document.getElementById(\`completed-\${matchId}\`).checked;
+        const timeLabel = document.getElementById(\`time-label-\${matchId}\`).value;
+
+        try {
+          const res = await fetch("/api/match-scores", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + adminToken
+            },
+            body: JSON.stringify({
+              matchId,
+              scoreA,
+              scoreB,
+              completed,
+              timeLabel
+            })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            scoreOverrides = data.scores || {};
+            renderScoresControl();
+            loadBets(); // reload stats to reflect score update
+          } else {
+            alert("Error: " + (data.error || "Failed to update"));
+          }
+        } catch (err) {
+          alert("Error saving score: " + err.message);
+        }
+      }
+
       function showLogin() {
         document.getElementById("login-card").classList.remove("hidden");
         document.getElementById("dashboard-container").classList.add("hidden");
@@ -649,6 +918,7 @@ app.get("/management", (req, res) => {
         document.getElementById("dashboard-container").classList.remove("hidden");
         document.getElementById("logout-container").classList.remove("hidden");
         loadBets();
+        loadScores();
       }
 
       async function handleLogin(e) {
