@@ -60,6 +60,11 @@ function saveBets(bets: any[]) {
 
 // 16 World Cup 2026 Round of 32 Matches Definitions
 const serverMatches = [
+  { id: 17, group: "Boston Stadium (Foxborough, USA)", teamA: "France", teamB: "Morocco", logoA: "🇫🇷", logoB: "🇲🇦", oddsYes: "1.45", oddsDraw: "3.20", oddsNo: "4.50", probYes: "58%", probDraw: "24%", probNo: "18%", date: "July 9, 20:00 UTC", kickoff: "2026-07-09T20:00:00Z" },
+  { id: 18, group: "Los Angeles Stadium (Inglewood, USA)", teamA: "Spain", teamB: "Belgium", logoA: "🇪🇸", logoB: "🇧🇪", oddsYes: "1.55", oddsDraw: "3.10", oddsNo: "3.80", probYes: "54%", probDraw: "26%", probNo: "20%", date: "July 10, 19:00 UTC", kickoff: "2026-07-10T19:00:00Z" },
+  { id: 19, group: "Miami Stadium (Miami, USA)", teamA: "Norway", teamB: "England", logoA: "🇳🇴", logoB: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", oddsYes: "3.40", oddsDraw: "3.00", oddsNo: "1.70", probYes: "25%", probDraw: "28%", probNo: "47%", date: "July 11, 21:00 UTC", kickoff: "2026-07-11T21:00:00Z" },
+  { id: 20, group: "Kansas City Stadium (Kansas City, USA)", teamA: "Argentina / Egypt", teamB: "Switzerland / Colombia", logoA: "🇦🇷/🇪🇬", logoB: "🇨🇭/🇨🇴", oddsYes: "1.85", oddsDraw: "2.90", oddsNo: "2.40", probYes: "45%", probDraw: "29%", probNo: "26%", date: "July 12, 01:00 UTC", kickoff: "2026-07-12T01:00:00Z" },
+
   { id: 1, group: "Round of 32", teamA: "South Africa", teamB: "Canada", logoA: "🇿🇦", logoB: "🇨🇦", oddsYes: "2.10", oddsDraw: "2.90", oddsNo: "2.50", probYes: "38%", probDraw: "30%", probNo: "32%", date: "June 28, 19:00 UTC", kickoff: "2026-06-28T19:00:00Z" },
   { id: 2, group: "Round of 32", teamA: "Brazil", teamB: "Japan", logoA: "🇧🇷", logoB: "🇯🇵", oddsYes: "1.35", oddsDraw: "3.75", oddsNo: "5.45", probYes: "62%", probDraw: "23%", probNo: "15%", date: "June 29, 17:00 UTC", kickoff: "2026-06-29T17:00:00Z" },
   { id: 3, group: "Round of 32", teamA: "Germany", teamB: "Paraguay", logoA: "🇩🇪", logoB: "🇵🇾", oddsYes: "1.45", oddsDraw: "3.50", oddsNo: "4.75", probYes: "58%", probDraw: "24%", probNo: "18%", date: "June 29, 20:30 UTC", kickoff: "2026-06-29T20:30:00Z" },
@@ -171,10 +176,10 @@ app.get("/api/leaderboard", (req, res) => {
 
       if (bet.matchId === "champion") {
         const now = new Date();
-        const tournamentEnd = new Date("2026-07-04T00:00:00Z"); // Resolved after round of 32 finishes
+        const tournamentEnd = new Date("2026-07-15T00:00:00Z"); // Resolved after final matches finish
         if (now >= tournamentEnd) {
           resolved = true;
-          if (bet.teamName === "Brazil") {
+          if (bet.teamName === "France") {
             isWin = true;
           }
         }
@@ -780,7 +785,7 @@ app.get("/management", (req, res) => {
                 <span class="bg-purple-950/60 border border-purple-900/40 px-2 py-0.5 rounded text-[10px] select-all">\${shortWallet}</span>
               </td>
               <td class="py-3 px-5 font-display text-white font-medium text-[11px]">
-                \${bet.logoA} \${bet.teamA} <span class="text-purple-400 text-[10px]">vs</span> \s\${bet.logoB} \${bet.teamB}
+                \${bet.logoA} \${bet.teamA} <span class="text-purple-400 text-[10px]">vs</span> \${bet.logoB} \${bet.teamB}
               </td>
               <td class="py-3 px-5">
                 <span class="px-2 py-0.5 rounded font-extrabold text-[10px] uppercase bg-green-950/50 text-green-400 border border-green-900/50">

@@ -867,15 +867,103 @@
         }
       }
 
+      // 4K High-Definition Real Flag Photo URLs Resolver
+      function getFlagUrl(teamName) {
+        const codes = {
+          "South Africa": "za",
+          "Canada": "ca",
+          "Brazil": "br",
+          "Japan": "jp",
+          "Germany": "de",
+          "Paraguay": "py",
+          "Netherlands": "nl",
+          "Morocco": "ma",
+          "Ivory Coast": "ci",
+          "Norway": "no",
+          "France": "fr",
+          "Sweden": "se",
+          "Mexico": "mx",
+          "Ecuador": "ec",
+          "England": "gb-eng",
+          "DR Congo": "cd",
+          "Belgium": "be",
+          "Senegal": "sn",
+          "USA": "us",
+          "Bosnia & Herzegovina": "ba",
+          "Spain": "es",
+          "Austria": "at",
+          "Portugal": "pt",
+          "Croatia": "hr",
+          "Switzerland": "ch",
+          "Algeria": "dz",
+          "Australia": "au",
+          "Egypt": "eg",
+          "Argentina": "ar",
+          "Cape Verde": "cv",
+          "Colombia": "co",
+          "Ghana": "gh"
+        };
+        const code = codes[teamName];
+        if (code) {
+          return `https://flagcdn.com/w160/${code}.png`;
+        }
+        return "https://flagcdn.com/w160/un.png";
+      }
+
+      function getFlagHtml(teamName, extraClass = "w-6 h-4 rounded-xs shadow-md object-cover") {
+        const parts = teamName.split('/').map(p => p.trim());
+        if (parts.length > 1) {
+          return `
+            <div class="flex items-center gap-1 shrink-0">
+              ${parts.map(p => {
+                const url = getFlagUrl(p);
+                return `<img src="${url}" class="${extraClass}" alt="${p}" referrerpolicy="no-referrer" />`;
+              }).join('')}
+            </div>
+          `;
+        } else {
+          const url = getFlagUrl(teamName);
+          return `<img src="${url}" class="${extraClass} shrink-0" alt="${teamName}" referrerpolicy="no-referrer" />`;
+        }
+      }
+
+      function getBackgroundFlagHtml(teamName, side) {
+        const parts = teamName.split('/').map(p => p.trim());
+        if (parts.length > 1) {
+          return `
+            <div class="w-full h-full flex select-none pointer-events-none">
+              ${parts.map((p, index) => {
+                const url = getFlagUrl(p);
+                const transformClass = index === 0 ? "scale-[1.7] origin-right" : "scale-[1.7] origin-left";
+                return `
+                  <div class="w-1/2 h-full flex items-center overflow-hidden">
+                    <img src="${url}" class="w-full h-full object-cover filter blur-[2px] ${transformClass}" referrerpolicy="no-referrer" />
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        } else {
+          const url = getFlagUrl(teamName);
+          const transformClass = side === "left" ? "scale-[1.7] origin-right" : "scale-[1.7] origin-left";
+          return `<img src="${url}" class="w-full h-full object-cover filter blur-[2.5px] ${transformClass} select-none pointer-events-none" referrerpolicy="no-referrer" style="opacity: 0.85;" />`;
+        }
+      }
+
       // 16 Matches Array (World Cup 2026 Round of 32) - House-balanced odds with a high platform margin (vig) built in to secure house edge
       const matches = [
+        { id: 17, group: "Boston Stadium (Foxborough, USA)", teamA: "France", teamB: "Morocco", logoA: "🇫🇷", logoB: "🇲🇦", oddsYes: "1.45", oddsDraw: "3.20", oddsNo: "4.50", probYes: "58%", probDraw: "24%", probNo: "18%", date: "July 9, 20:00 UTC", kickoff: "2026-07-09T20:00:00Z" },
+        { id: 18, group: "Los Angeles Stadium (Inglewood, USA)", teamA: "Spain", teamB: "Belgium", logoA: "🇪🇸", logoB: "🇧🇪", oddsYes: "1.55", oddsDraw: "3.10", oddsNo: "3.80", probYes: "54%", probDraw: "26%", probNo: "20%", date: "July 10, 19:00 UTC", kickoff: "2026-07-10T19:00:00Z" },
+        { id: 19, group: "Miami Stadium (Miami, USA)", teamA: "Norway", teamB: "England", logoA: "🇳🇴", logoB: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", oddsYes: "3.40", oddsDraw: "3.00", oddsNo: "1.70", probYes: "25%", probDraw: "28%", probNo: "47%", date: "July 11, 21:00 UTC", kickoff: "2026-07-11T21:00:00Z" },
+        { id: 20, group: "Kansas City Stadium (Kansas City, USA)", teamA: "Argentina / Egypt", teamB: "Switzerland / Colombia", logoA: "🇦🇷/🇪🇬", logoB: "🇨🇭/🇨🇴", oddsYes: "1.85", oddsDraw: "2.90", oddsNo: "2.40", probYes: "45%", probDraw: "29%", probNo: "26%", date: "July 12, 01:00 UTC", kickoff: "2026-07-12T01:00:00Z" },
+
         { id: 1, group: "Round of 32", teamA: "South Africa", teamB: "Canada", logoA: "🇿🇦", logoB: "🇨🇦", oddsYes: "1.75", oddsDraw: "2.40", oddsNo: "2.10", probYes: "38%", probDraw: "30%", probNo: "32%", date: "June 28, 19:00 UTC", kickoff: "2026-06-28T19:00:00Z" },
         
         { id: 2, group: "Round of 32", teamA: "Brazil", teamB: "Japan", logoA: "🇧🇷", logoB: "🇯🇵", oddsYes: "1.18", oddsDraw: "3.10", oddsNo: "4.20", probYes: "62%", probDraw: "23%", probNo: "15%", date: "June 29, 17:00 UTC", kickoff: "2026-06-29T17:00:00Z" },
         { id: 3, group: "Round of 32", teamA: "Germany", teamB: "Paraguay", logoA: "🇩🇪", logoB: "🇵🇾", oddsYes: "1.25", oddsDraw: "2.90", oddsNo: "3.75", probYes: "58%", probDraw: "24%", probNo: "18%", date: "June 29, 20:30 UTC", kickoff: "2026-06-29T20:30:00Z" },
         { id: 4, group: "Round of 32", teamA: "Netherlands", teamB: "Morocco", logoA: "🇳🇱", logoB: "🇲🇦", oddsYes: "1.52", oddsDraw: "2.45", oddsNo: "2.30", probYes: "43%", probDraw: "28%", probNo: "29%", date: "June 30, 01:00 UTC", kickoff: "2026-06-30T01:00:00Z" },
 
-        { id: 5, group: "Round of 32", teamA: "Ivory Coast", teamB: "Norway", logoA: "🇨🇮", logoB: "🇳🇴", oddsYes: "1.85", oddsDraw: "2.35", oddsNo: "1.95", probYes: "35%", probDraw: "29%", probNo: "36%", date: "June 30, 17:00 UTC", kickoff: "2026-07-30T17:00:00Z" },
+        { id: 5, group: "Round of 32", teamA: "Ivory Coast", teamB: "Norway", logoA: "🇨🇮", logoB: "🇳🇴", oddsYes: "1.85", oddsDraw: "2.35", oddsNo: "1.95", probYes: "35%", probDraw: "29%", probNo: "36%", date: "June 30, 17:00 UTC", kickoff: "2026-06-30T17:00:00Z" },
         { id: 6, group: "Round of 32", teamA: "France", teamB: "Sweden", logoA: "🇫🇷", logoB: "🇸🇪", oddsYes: "1.20", oddsDraw: "3.00", oddsNo: "3.90", probYes: "60%", probDraw: "24%", probNo: "16%", date: "June 30, 21:00 UTC", kickoff: "2026-06-30T21:00:00Z" },
         { id: 7, group: "Round of 32", teamA: "Mexico", teamB: "Ecuador", logoA: "🇲🇽", logoB: "🇪🇨", oddsYes: "1.60", oddsDraw: "2.40", oddsNo: "2.15", probYes: "41%", probDraw: "30%", probNo: "29%", date: "July 1, 01:00 UTC", kickoff: "2026-07-01T01:00:00Z" },
 
@@ -918,30 +1006,105 @@
 
       // Selected Over/Under threshold per match (stored by matchId)
       const selectedOUThresholds = {};
-      // Initialize with 2.5 goals default for each match
-      for (let i = 1; i <= 16; i++) {
-        selectedOUThresholds[i] = 2.5;
+      // Initialize with 2.5 goals default for each match dynamically
+      matches.forEach(m => {
+        selectedOUThresholds[m.id] = 2.5;
+      });
+
+      // World Cup 2026 Outright Champion Contenders List (Only Remaining Teams)
+      const championContenders = [
+        { index: 0, name: "France", logo: "🇫🇷", odds: "4.20", status: "Main Contender", color: "from-blue-600 via-slate-800 to-red-600" },
+        { index: 1, name: "Argentina", logo: "🇦🇷", odds: "4.50", status: "Main Contender", color: "from-sky-400 via-slate-800 to-sky-500" },
+        { index: 2, name: "England", logo: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", odds: "5.00", status: "Main Contender", color: "from-red-600 via-slate-800 to-red-600" },
+        { index: 3, name: "Spain", logo: "🇪🇸", odds: "5.50", status: "Strong Challenger", color: "from-red-600 via-yellow-500 to-red-700" },
+        { index: 4, name: "Belgium", logo: "🇧🇪", odds: "7.00", status: "Strong Challenger", color: "from-red-600 via-yellow-500 to-black" },
+        { index: 5, name: "Colombia", logo: "🇨🇴", odds: "9.50", status: "Strong Challenger", color: "from-yellow-500 via-blue-600 to-red-600" },
+        { index: 6, name: "Switzerland", logo: "🇨🇭", odds: "12.00", status: "Challenger", color: "from-red-600 via-slate-800 to-red-600" },
+        { index: 7, name: "Morocco", logo: "🇲🇦", odds: "15.00", status: "Challenger", color: "from-red-700 via-green-700 to-red-600" },
+        { index: 8, name: "Norway", logo: "🇳🇴", odds: "18.00", status: "Outside Threat", color: "from-red-600 via-blue-800 to-red-600" },
+        { index: 9, name: "Egypt", logo: "🇪🇬", odds: "25.00", status: "Outside Threat", color: "from-red-600 via-slate-800 to-black" }
+      ];
+
+      // Dynamic Match 20 Winner config functions
+      function applyMatch20DynamicWinners() {
+        const m20 = matches.find(m => m.id === 20);
+        if (!m20) return;
+        
+        const savedWinnerA = localStorage.getItem("arcpredict_match20_winnerA");
+        const savedWinnerB = localStorage.getItem("arcpredict_match20_winnerB");
+        
+        if (savedWinnerA) {
+          m20.teamA = savedWinnerA;
+          m20.logoA = savedWinnerA === "Argentina" ? "🇦🇷" : "🇪🇬";
+        } else {
+          m20.teamA = "Argentina / Egypt";
+          m20.logoA = "🇦🇷/🇪🇬";
+        }
+        
+        if (savedWinnerB) {
+          m20.teamB = savedWinnerB;
+          m20.logoB = savedWinnerB === "Switzerland" ? "🇨🇭" : "🇨🇴";
+        } else {
+          m20.teamB = "Switzerland / Colombia";
+          m20.logoB = "🇨🇭/🇨🇴";
+        }
       }
 
-      // World Cup 2026 Outright Champion Contenders List (16 Elite Teams with realistic house-vig odds)
-      const championContenders = [
-        { index: 0, name: "Brazil", logo: "🇧🇷", odds: "4.25", status: "Main Contender", color: "from-yellow-600 to-green-600" },
-        { index: 1, name: "France", logo: "🇫🇷", odds: "4.75", status: "Main Contender", color: "from-blue-600 to-red-600" },
-        { index: 2, name: "Argentina", logo: "🇦🇷", odds: "5.20", status: "Main Contender", color: "from-sky-500 to-amber-500" },
-        { index: 3, name: "England", logo: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", odds: "5.80", status: "Main Contender", color: "from-red-600 to-slate-200" },
-        { index: 4, name: "Spain", logo: "🇪🇸", odds: "6.20", status: "Strong Challenger", color: "from-red-600 to-yellow-500" },
-        { index: 5, name: "Germany", logo: "🇩🇪", odds: "7.50", status: "Strong Challenger", color: "from-stone-800 to-yellow-600" },
-        { index: 6, name: "Portugal", logo: "🇵🇹", odds: "8.50", status: "Strong Challenger", color: "from-red-600 to-green-600" },
-        { index: 7, name: "Netherlands", logo: "🇳🇱", odds: "10.00", status: "Strong Challenger", color: "from-orange-500 to-blue-600" },
-        { index: 8, name: "Belgium", logo: "🇧🇪", odds: "12.50", status: "Challenger", color: "from-red-600 to-black" },
-        { index: 9, name: "USA", logo: "🇺🇸", odds: "15.00", status: "Challenger", color: "from-blue-700 to-red-600" },
-        { index: 10, name: "Mexico", logo: "🇲🇽", odds: "18.00", status: "Dark Horse", color: "from-green-700 to-red-600" },
-        { index: 11, name: "Colombia", logo: "🇨🇴", odds: "22.00", status: "Dark Horse", color: "from-yellow-500 to-blue-700" },
-        { index: 12, name: "Croatia", logo: "🇭🇷", odds: "25.00", status: "Dark Horse", color: "from-red-600 to-slate-200" },
-        { index: 13, name: "Morocco", logo: "🇲🇦", odds: "28.00", status: "Dark Horse", color: "from-red-700 to-green-700" },
-        { index: 14, name: "Norway", logo: "🇳🇴", odds: "35.00", status: "Outside Threat", color: "from-red-600 to-blue-800" },
-        { index: 15, name: "Canada", logo: "🇨🇦", odds: "45.00", status: "Outside Threat", color: "from-red-600 to-slate-100" }
-      ];
+      function setMatch20Winner(side, teamName) {
+        if (side === 'A') {
+          localStorage.setItem("arcpredict_match20_winnerA", teamName);
+          writeLog(`[LIVE CONFIG] Match #20 Team A winner selected: <strong>${teamName}</strong> (the other team is eliminated).`, "success");
+        } else if (side === 'B') {
+          localStorage.setItem("arcpredict_match20_winnerB", teamName);
+          writeLog(`[LIVE CONFIG] Match #20 Team B winner selected: <strong>${teamName}</strong> (the other team is eliminated).`, "success");
+        }
+        
+        applyMatch20DynamicWinners();
+        renderMatches();
+        
+        if (typeof activeTab !== "undefined") {
+          if (activeTab === "goals-ou") renderGoalsOU();
+          else if (activeTab === "champion") {
+            renderChampionOutright();
+            renderHeroChampionOutright();
+          }
+        }
+      }
+
+      function resetMatch20Winners() {
+        localStorage.removeItem("arcpredict_match20_winnerA");
+        localStorage.removeItem("arcpredict_match20_winnerB");
+        writeLog(`[LIVE CONFIG] Match #20 winners reset to original Multi-Team format.`, "system");
+        
+        applyMatch20DynamicWinners();
+        renderMatches();
+        
+        if (typeof activeTab !== "undefined") {
+          if (activeTab === "goals-ou") renderGoalsOU();
+          else if (activeTab === "champion") {
+            renderChampionOutright();
+            renderHeroChampionOutright();
+          }
+        }
+      }
+
+      function getEliminatedTeams() {
+        const eliminated = [];
+        const winnerA = localStorage.getItem("arcpredict_match20_winnerA");
+        const winnerB = localStorage.getItem("arcpredict_match20_winnerB");
+        if (winnerA === "Argentina") eliminated.push("Egypt");
+        if (winnerA === "Egypt") eliminated.push("Argentina");
+        if (winnerB === "Switzerland") eliminated.push("Colombia");
+        if (winnerB === "Colombia") eliminated.push("Switzerland");
+        return eliminated;
+      }
+
+      // Expose to window immediately
+      window.setMatch20Winner = setMatch20Winner;
+      window.resetMatch20Winners = resetMatch20Winners;
+
+      // Apply startup settings
+      applyMatch20DynamicWinners();
 
       // Prediction History State
       let predictionHistory = [];
@@ -1182,9 +1345,9 @@
           
           if (item.matchId === "champion") {
             const now = new Date();
-            const tournamentEnd = new Date("2026-07-04T00:00:00Z");
+            const tournamentEnd = new Date("2026-07-15T00:00:00Z");
             if (now >= tournamentEnd) {
-              const isWin = item.teamName === "Brazil" || item.pick === "CHAMPION_BRA";
+              const isWin = item.teamName === "France" || item.pick === "CHAMPION_FRA";
               if (isWin) {
                 const payout = (parseFloat(odds) * 1.0).toFixed(2);
                 statusBadgeHtml = `<span class="text-[8px] bg-green-950/80 text-green-400 border border-green-800/60 px-1.5 py-0.5 rounded font-mono font-extrabold uppercase tracking-wider">WON (+${payout})</span>`;
@@ -1225,10 +1388,10 @@
 
           div.innerHTML = `
             <div class="flex flex-col min-w-0 flex-1">
-              <div class="flex items-center gap-1.5 font-bold text-slate-200 truncate">
-                <span class="text-xs select-none">${logoA}</span>
+              <div class="flex items-center gap-2 font-bold text-slate-200 truncate">
+                ${getFlagHtml(teamA, "w-4 h-2.5 rounded-2xs object-cover")}
                 <span class="truncate">${teamA} vs ${teamB}</span>
-                <span class="text-xs select-none">${logoB}</span>
+                ${getFlagHtml(teamB, "w-4 h-2.5 rounded-2xs object-cover")}
               </div>
               <div class="text-[9px] text-slate-400 flex items-center gap-1.5 mt-0.5 font-mono">
                 <span>Pick: <strong class="text-slate-200">${pick}</strong></span>
@@ -1933,7 +2096,16 @@
         if (!grid) return;
         grid.innerHTML = "";
 
-        matches.forEach((match) => {
+        // Sort matches: New games (ID >= 17) appear above every other game
+        const sortedMatches = [...matches].sort((a, b) => {
+          const aIsNew = a.id >= 17;
+          const bIsNew = b.id >= 17;
+          if (aIsNew && !bIsNew) return -1;
+          if (!aIsNew && bIsNew) return 1;
+          return a.id - b.id;
+        });
+
+        sortedMatches.forEach((match) => {
           const status = getMatchStatus(match);
           const activeThreshold = selectedOUThresholds[match.id] || 2.5;
           const ouData = getOverUnderOdds(match.id, activeThreshold);
@@ -1954,9 +2126,13 @@
           card.className = "bg-gradient-to-b from-[#0a1128] to-[#050918] border border-blue-900/40 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400/80 hover:scale-[1.03] hover:z-10 transition-all duration-500 ease-out hover:shadow-[0_0_35px_rgba(245,158,11,0.25)] relative overflow-hidden luxury-card-pulse luxury-card-glow";
           
           const flagBackground = `
-            <div class="absolute inset-0 pointer-events-none flex select-none overflow-hidden rounded-xl animate-pulse" style="z-index: 0; opacity: 0.03;">
-              <span class="w-1/2 text-8xl flex items-center justify-center font-bold filter blur-lg">${match.logoA}</span>
-              <span class="w-1/2 text-8xl flex items-center justify-center font-bold filter blur-lg">${match.logoB}</span>
+            <div class="absolute inset-0 pointer-events-none flex select-none overflow-hidden rounded-xl opacity-[0.03] animate-pulse" style="z-index: 0;">
+              <div class="w-1/2 h-full overflow-hidden">
+                ${getBackgroundFlagHtml(match.teamA, "left")}
+              </div>
+              <div class="w-1/2 h-full overflow-hidden">
+                ${getBackgroundFlagHtml(match.teamB, "right")}
+              </div>
             </div>
           `;
 
@@ -1983,12 +2159,12 @@
               <!-- Teams info -->
               <div class="flex items-center justify-between py-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-xl">${match.logoA}</span>
+                  ${getFlagHtml(match.teamA, "w-6 h-4 rounded-xs shadow-md object-cover")}
                   <span class="text-xs font-black font-display text-white truncate max-w-[100px]">${match.teamA}</span>
                 </div>
                 <span class="text-[9px] font-mono font-bold text-slate-500 bg-slate-950 px-1.5 py-0.5 rounded border border-blue-900/30">vs</span>
                 <div class="flex items-center gap-2 flex-row-reverse">
-                  <span class="text-xl">${match.logoB}</span>
+                  ${getFlagHtml(match.teamB, "w-6 h-4 rounded-xs shadow-md object-cover")}
                   <span class="text-xs font-black font-display text-white truncate max-w-[100px] text-right">${match.teamB}</span>
                 </div>
               </div>
@@ -2045,37 +2221,52 @@
         if (!grid) return;
         grid.innerHTML = "";
 
+        const eliminatedTeams = getEliminatedTeams();
+
         championContenders.forEach((team) => {
+          const isEliminated = eliminatedTeams.includes(team.name);
           const card = document.createElement("div");
           card.id = `hero-champion-card-${team.index}`;
-          card.className = "bg-gradient-to-b from-[#0a1128]/85 to-[#050918]/90 border border-blue-900/30 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group";
+          
+          let cardClass = "bg-gradient-to-b from-[#0a1128]/85 to-[#050918]/90 border border-blue-900/30 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group";
+          if (isEliminated) {
+            cardClass += " opacity-35 grayscale border-red-900/20";
+          }
+          card.className = cardClass;
           
           const shineOverlay = `
             <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-amber-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none"></div>
           `;
 
           const now = new Date();
-          const closed = now >= new Date("2026-07-04T00:00:00Z");
+          const closed = now >= new Date("2026-07-15T00:00:00Z");
           
           let btnClass = "w-full py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[10px] font-black uppercase rounded-lg tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer border border-amber-400/80 shadow-sm";
           let disabledAttr = "";
           
-          if (closed) {
+          if (closed || isEliminated) {
             btnClass = "w-full py-2 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex items-center justify-center pointer-events-none opacity-40";
             disabledAttr = "disabled";
+          }
+
+          let statusBadgeText = team.status;
+          let statusBadgeClass = "text-amber-400 bg-amber-500/10 border-amber-500/30";
+          if (isEliminated) {
+            statusBadgeText = "ELIMINATED";
+            statusBadgeClass = "text-red-400 bg-red-950/45 border-red-900/40";
           }
 
           card.innerHTML = `
             ${shineOverlay}
             <div class="relative z-10 flex flex-col justify-between h-full space-y-3.5 text-left">
               <div class="flex items-center justify-between">
-                <span class="text-[8px] font-extrabold font-mono text-amber-400 tracking-wider bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 uppercase">${team.status}</span>
+                <span class="text-[8px] font-extrabold font-mono tracking-wider px-2 py-0.5 rounded border uppercase ${statusBadgeClass}">${statusBadgeText}</span>
                 <span class="text-[9px] font-mono text-slate-500 font-bold">#${team.index + 1}</span>
               </div>
 
               <div class="flex items-center gap-3 py-1">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr ${team.color} p-0.5 shadow-md shrink-0 flex items-center justify-center">
-                  <span class="text-2xl filter drop-shadow-md">${team.logo}</span>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr ${team.color} p-1 shadow-md shrink-0 flex items-center justify-center overflow-hidden">
+                  ${getFlagHtml(team.name, "w-full h-full object-cover rounded-lg")}
                 </div>
                 <div class="space-y-0.5 min-w-0 text-left">
                   <h4 class="text-xs font-black text-white font-display tracking-tight truncate">${team.name}</h4>
@@ -2090,7 +2281,7 @@
 
               <button id="hero-champion-btn-${team.index}" onclick="placeChampionBet(${team.index}, '${team.name}', '${team.odds}')" ${disabledAttr} class="${btnClass}">
                 <i data-lucide="ticket-check" class="w-3 h-3"></i>
-                <span>Predict Champion</span>
+                <span>${isEliminated ? 'ELIMINATED' : 'Predict Champion'}</span>
               </button>
             </div>
           `;
@@ -2125,10 +2316,18 @@
         if (!grid) return;
         grid.innerHTML = "";
 
+        const eliminatedTeams = getEliminatedTeams();
+
         championContenders.forEach((team) => {
+          const isEliminated = eliminatedTeams.includes(team.name);
           const card = document.createElement("div");
           card.id = `champion-card-${team.index}`;
-          card.className = "bg-gradient-to-b from-[#0a1128] to-[#050918] border border-blue-900/40 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400 hover:scale-[1.03] transition-all duration-300 relative overflow-hidden group";
+          
+          let cardClass = "bg-gradient-to-b from-[#0a1128] to-[#050918] border border-blue-900/40 rounded-xl p-4 flex flex-col justify-between hover:border-amber-400 hover:scale-[1.03] transition-all duration-300 relative overflow-hidden group";
+          if (isEliminated) {
+            cardClass += " opacity-35 grayscale border-red-900/20";
+          }
+          card.className = cardClass;
           
           // Subtle diagonal golden flash animation overlay
           const shineOverlay = `
@@ -2137,14 +2336,21 @@
 
           // Check if bets have already finished (Round of 32 ended)
           const now = new Date();
-          const closed = now >= new Date("2026-07-04T00:00:00Z");
+          const closed = now >= new Date("2026-07-15T00:00:00Z");
           
           let btnClass = "w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[10px] font-black uppercase rounded-lg tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer border border-amber-400";
           let disabledAttr = "";
           
-          if (closed) {
+          if (closed || isEliminated) {
             btnClass = "w-full py-2.5 bg-blue-950/20 border border-blue-900/30 text-slate-500 text-[10px] font-bold rounded-lg flex items-center justify-center pointer-events-none opacity-40";
             disabledAttr = "disabled";
+          }
+
+          let statusBadgeText = team.status;
+          let statusBadgeClass = "text-amber-400 bg-amber-500/10 border-amber-500/30";
+          if (isEliminated) {
+            statusBadgeText = "ELIMINATED";
+            statusBadgeClass = "text-red-400 bg-red-950/45 border-red-900/40";
           }
 
           card.innerHTML = `
@@ -2152,14 +2358,14 @@
             <div class="relative z-10 flex flex-col justify-between h-full space-y-4">
               <!-- Badge info -->
               <div class="flex items-center justify-between">
-                <span class="text-[8px] font-extrabold font-mono text-amber-400 tracking-wider bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 uppercase">${team.status}</span>
+                <span class="text-[8px] font-extrabold font-mono tracking-wider px-2 py-0.5 rounded border uppercase ${statusBadgeClass}">${statusBadgeText}</span>
                 <span class="text-[9px] font-mono text-slate-500 font-bold">#${team.index + 1}</span>
               </div>
 
               <!-- Flag & Name -->
               <div class="flex items-center gap-3 py-1">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${team.color} p-0.5 shadow-md shrink-0 flex items-center justify-center">
-                  <span class="text-3xl filter drop-shadow-md">${team.logo}</span>
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${team.color} p-1 shadow-md shrink-0 flex items-center justify-center overflow-hidden">
+                  ${getFlagHtml(team.name, "w-full h-full object-cover rounded-lg")}
                 </div>
                 <div class="space-y-0.5">
                   <h4 class="text-sm font-black text-white font-display tracking-tight">${team.name}</h4>
@@ -2176,7 +2382,7 @@
               <!-- Predict Button -->
               <button id="champion-btn-${team.index}" onclick="placeChampionBet(${team.index}, '${team.name}', '${team.odds}')" ${disabledAttr} class="${btnClass}">
                 <i data-lucide="ticket-check" class="w-3.5 h-3.5"></i>
-                <span>Predict Champion</span>
+                <span>${isEliminated ? 'ELIMINATED' : 'Predict Champion'}</span>
               </button>
             </div>
           `;
@@ -2477,11 +2683,12 @@
             heroBtn.innerHTML = `<span class="animate-spin inline-block w-2.5 h-2.5 border-2 border-slate-950 border-t-transparent rounded-full mr-1"></span> Lock...`;
           }
 
-          // STEP 2: Call betYes(teamIndex) representing team outright choice on-chain
+          // STEP 2: Call betYes(100 + teamIndex) representing team outright choice on-chain to prevent overlap with closed match IDs
           const predictionContract = new ethers.Contract(predictionAddress, predictionAbi, signer);
-          writeLog(`[STEP 2/2] Mapping Champion Predict on-chain: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betYes(${teamIndex})</code>`, "system");
+          const onChainIndex = 100 + teamIndex;
+          writeLog(`[STEP 2/2] Mapping Champion Predict on-chain: <code class="bg-purple-950 px-1 rounded text-purple-300 font-mono">betYes(${onChainIndex})</code>`, "system");
           
-          const betTx = await predictionContract.betYes(teamIndex, { gasLimit: 250000n });
+          const betTx = await predictionContract.betYes(onChainIndex, { gasLimit: 250000n });
           writeLog(`[TX PENDING] Champion Outright transaction pending: <span class="text-indigo-400 font-mono">${truncateAddress(betTx.hash)}</span>...`, "tx");
           await betTx.wait();
           writeLog(`[STEP 2/2 SUCCESS] Champion Outright transaction receipt confirmed!`, "success");
@@ -2568,7 +2775,16 @@
         if (!grid) return;
         grid.innerHTML = ""; // Clear existing placeholder HTML
 
-        matches.forEach((match) => {
+        // Sort matches: New games (ID >= 17) appear above every other game
+        const sortedMatches = [...matches].sort((a, b) => {
+          const aIsNew = a.id >= 17;
+          const bIsNew = b.id >= 17;
+          if (aIsNew && !bIsNew) return -1;
+          if (!aIsNew && bIsNew) return 1;
+          return a.id - b.id;
+        });
+
+        sortedMatches.forEach((match) => {
           const status = getMatchStatus(match);
           
           let yesDisabledAttr = "";
@@ -2612,6 +2828,55 @@
               : "px-1.5 py-0.5 text-[8px] font-bold rounded bg-slate-950/80 hover:bg-slate-900 border border-blue-900/40 text-slate-400 hover:text-amber-400 transition-all";
             pillButtons += `<button id="ou-btn-${match.id}-${t}" onclick="changeOUThreshold(${match.id}, ${t}); event.stopPropagation();" class="${btnClass}">${t}</button>`;
           });
+
+          let match20AdminControlHtml = "";
+          if (match.id === 20) {
+            const winnerA = localStorage.getItem("arcpredict_match20_winnerA") || "";
+            const winnerB = localStorage.getItem("arcpredict_match20_winnerB") || "";
+            
+            match20AdminControlHtml = `
+              <div class="mt-3 p-2.5 bg-[#0d1635]/80 border border-amber-500/30 rounded-lg space-y-2 text-left relative z-20">
+                <div class="flex items-center gap-1.5 justify-between">
+                  <span class="text-[8px] font-mono text-amber-400 font-extrabold uppercase tracking-widest flex items-center gap-1">
+                    <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-500"></i>
+                    <span>Bracket Simulator</span>
+                  </span>
+                  <button onclick="resetMatch20Winners(); event.stopPropagation();" class="text-[8px] bg-red-950/40 hover:bg-red-900/30 text-red-400 px-1.5 py-0.5 rounded border border-red-500/20 font-bold transition-all cursor-pointer">
+                    Reset
+                  </button>
+                </div>
+                <p class="text-[7.5px] text-slate-400 font-medium leading-tight">
+                  Simulate tonight's real winner. Click a team to advance it and eliminate its rival.
+                </p>
+                <div class="grid grid-cols-2 gap-1.5 pt-1">
+                  <!-- Slot A Option -->
+                  <div class="space-y-1">
+                    <span class="text-[7px] text-slate-500 font-bold uppercase tracking-wider block">Winner Slot A:</span>
+                    <div class="flex gap-1">
+                      <button onclick="setMatch20Winner('A', 'Argentina'); event.stopPropagation();" class="flex-1 py-1 text-[8px] font-extrabold rounded transition-all border cursor-pointer ${winnerA === 'Argentina' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-950 text-slate-400 hover:text-white border-blue-900/40'}">
+                        Argentina
+                      </button>
+                      <button onclick="setMatch20Winner('A', 'Egypt'); event.stopPropagation();" class="flex-1 py-1 text-[8px] font-extrabold rounded transition-all border cursor-pointer ${winnerA === 'Egypt' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-950 text-slate-400 hover:text-white border-blue-900/40'}">
+                        Egypt
+                      </button>
+                    </div>
+                  </div>
+                  <!-- Slot B Option -->
+                  <div class="space-y-1">
+                    <span class="text-[7px] text-slate-500 font-bold uppercase tracking-wider block">Winner Slot B:</span>
+                    <div class="flex gap-1">
+                      <button onclick="setMatch20Winner('B', 'Switzerland'); event.stopPropagation();" class="flex-1 py-1 text-[8px] font-extrabold rounded transition-all border cursor-pointer ${winnerB === 'Switzerland' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-950 text-slate-400 hover:text-white border-blue-900/40'}">
+                        Swiss
+                      </button>
+                      <button onclick="setMatch20Winner('B', 'Colombia'); event.stopPropagation();" class="flex-1 py-1 text-[8px] font-extrabold rounded transition-all border cursor-pointer ${winnerB === 'Colombia' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-950 text-slate-400 hover:text-white border-blue-900/40'}">
+                        Colombia
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
 
           const ouAccordionHtml = `
             <!-- Goals Over/Under Market Section -->
@@ -2672,20 +2937,18 @@
           
           // Split Flag Background Layout (No white, half Team A flag, half Team B flag)
           const flagBackground = `
-            <div class="absolute inset-0 pointer-events-none flex select-none overflow-hidden rounded-xl" style="z-index: 0;">
-              <!-- Left Half Team A Flag -->
-              <div class="w-1/2 h-full flex items-center justify-end overflow-hidden opacity-[0.06] scale-[1.7] origin-right pr-1">
-                <span class="text-[120px] leading-none filter blur-[0.5px] select-none">${match.logoA}</span>
+            <div class="absolute inset-0 pointer-events-none flex select-none overflow-hidden rounded-xl opacity-[0.06]" style="z-index: 0;">
+              <div class="w-1/2 h-full overflow-hidden">
+                ${getBackgroundFlagHtml(match.teamA, "left")}
               </div>
-              <!-- Right Half Team B Flag -->
-              <div class="w-1/2 h-full flex items-center justify-start overflow-hidden opacity-[0.06] scale-[1.7] origin-left pl-1">
-                <span class="text-[120px] leading-none filter blur-[0.5px] select-none">${match.logoB}</span>
+              <div class="w-1/2 h-full overflow-hidden">
+                ${getBackgroundFlagHtml(match.teamB, "right")}
               </div>
             </div>
           `;
 
           // Render Match Header with Live/Completed Badges
-          const stageText = match.group.startsWith('Group') || match.group.startsWith('R') ? match.group : 'Group ' + match.group;
+          const stageText = match.group.startsWith('Group') || match.group.startsWith('R') || match.group.includes('Stadium') ? match.group : 'Group ' + match.group;
 
           const topBar = `
             <div class="relative z-10 flex justify-between items-center mb-2.5">
@@ -2704,7 +2967,7 @@
               <!-- Team A Info Row -->
               <div class="flex justify-between items-center bg-blue-950/40 p-2.5 rounded-lg border border-blue-900/30 backdrop-blur-xs">
                 <div class="flex items-center gap-2">
-                  <span class="text-base" role="img" aria-label="${match.teamA}">${match.logoA}</span>
+                  ${getFlagHtml(match.teamA, "w-6 h-4 rounded-xs shadow-md object-cover")}
                   <div class="flex flex-col">
                     <span class="text-xs font-bold text-slate-100 tracking-tight leading-normal">${match.teamA}</span>
                     <span id="odds-yes-display-1-${match.id}" class="text-[9px] text-slate-400 font-bold select-none leading-none">Win: ${match.oddsYes} USDC</span>
@@ -2733,7 +2996,7 @@
               <!-- Team B Info Row -->
               <div class="flex justify-between items-center bg-blue-950/40 p-2.5 rounded-lg border border-blue-900/30 backdrop-blur-xs">
                 <div class="flex items-center gap-2">
-                  <span class="text-base" role="img" aria-label="${match.teamB}">${match.logoB}</span>
+                  ${getFlagHtml(match.teamB, "w-6 h-4 rounded-xs shadow-md object-cover")}
                   <div class="flex flex-col">
                     <span class="text-xs font-bold text-slate-100 tracking-tight leading-normal">${match.teamB}</span>
                     <span id="odds-no-display-1-${match.id}" class="text-[9px] text-slate-400 font-bold select-none leading-none">Win: ${match.oddsNo} USDC</span>
@@ -2744,6 +3007,8 @@
                   <span id="prob-no-display-${match.id}" class="text-[9px] text-slate-450 block">${match.probNo} prob</span>
                 </div>
               </div>
+
+              ${match20AdminControlHtml}
 
             </div>
           `;
