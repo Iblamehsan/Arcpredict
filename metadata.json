@@ -1,6 +1,6 @@
 {
-  "name": "Arcpredict",
-  "description": "A simple Web3 dApp for betting on World Cup 2026 Matchday 3 matches with USDC on Arc testnet.",
+  "name": "BetonARC",
+  "description": "A decentralized prediction market dApp on Arc testnet for Crypto, Stocks, Commodities, Politics, Sports, and Tech.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
