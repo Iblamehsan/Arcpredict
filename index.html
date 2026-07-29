@@ -204,9 +204,17 @@
         <h1 class="text-base md:text-lg font-black tracking-tight font-display text-white">
           BETON<span class="text-amber-400">ARC</span>
         </h1>
-        <div class="hidden sm:block ml-4 px-2.5 py-1 bg-amber-950/40 text-[9px] font-mono font-bold text-amber-400 rounded-full border border-amber-500/30 tracking-wider">
+        <div class="hidden lg:block ml-2 px-2.5 py-1 bg-amber-950/40 text-[9px] font-mono font-bold text-amber-400 rounded-full border border-amber-500/30 tracking-wider">
           ARC TESTNET
         </div>
+        <!-- Header Creator Badge -->
+        <a href="https://x.com/iblamehsan" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 hover:border-amber-400 text-amber-300 hover:text-amber-200 rounded-full text-[10px] sm:text-xs font-medium transition-all duration-300 shadow-[0_0_12px_rgba(245,158,11,0.15)] group ml-1 sm:ml-2 shrink-0" title="Visit Ehsan's profile on X">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <span><span class="hidden sm:inline">Designed & Created by </span><span class="sm:hidden">By </span><strong class="font-bold underline decoration-amber-400/60 group-hover:decoration-amber-300 text-amber-200">Ehsan</strong></span>
+          <svg class="w-3 h-3 text-amber-400 fill-current group-hover:scale-110 transition-transform ml-0.5" viewBox="0 0 24 24">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
       </div>
       <div class="flex items-center gap-2.5 sm:gap-3">
         <div class="flex items-center gap-2 px-3.5 py-1.5 bg-blue-950/40 border border-amber-500/25 rounded-full text-xs font-medium">
@@ -2977,7 +2985,6 @@
             window.appIntervalsSet = true;
             setInterval(updateCountdowns, 1000);
             setInterval(renderLeaderboard, 15000);
-            setInterval(simulateMarketFluctuations, 4000);
           }
 
           // Safe helper to add listeners check
@@ -3137,7 +3144,6 @@
       } else {
         initApp();
       }
-      window.addEventListener("load", initApp);
 
       // Switch active view tab on the same page
       function switchActiveTab(tab) {
