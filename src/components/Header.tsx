@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
     ? (connectedAddress.length > 12
         ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}`
         : connectedAddress)
-    : '0x7a...4f8b';
+    : 'Wallet Connected';
 
 
   return (

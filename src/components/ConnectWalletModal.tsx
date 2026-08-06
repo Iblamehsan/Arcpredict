@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, Wallet, ShieldCheck, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, Wallet, ShieldCheck, Loader2, CheckCircle2, ArrowRight, AlertCircle } from 'lucide-react';
+import { connectWeb3Account } from '../utils/web3';
 
 interface ConnectWalletModalProps {
   onClose: () => void;
-  onConnect: (address?: string) => void;
+  onConnect: (address: string) => void;
   reason?: string;
 }
 
@@ -14,6 +15,7 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
 }) => {
   const [connectingProvider, setConnectingProvider] = useState<string | null>(null);
   const [successProvider, setSuccessProvider] = useState<string | null>(null);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   const walletProviders = [
     {
@@ -48,43 +50,20 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
 
   const handleSelectProvider = async (id: string) => {
     setConnectingProvider(id);
+    setConnectError(null);
 
-    // Attempt real window.ethereum / EIP-1193 Web3 provider connection if available in browser
     try {
-      const win = window as any;
-      let provider = win.ethereum;
-      if (id === 'okx' && win.okxwallet) {
-        provider = win.okxwallet;
-      } else if (id === 'phantom' && win.phantom?.ethereum) {
-        provider = win.phantom.ethereum;
-      } else if (id === 'trust' && win.trustwallet) {
-        provider = win.trustwallet;
-      }
-
-      if (provider && typeof provider.request === 'function') {
-        const accounts = await provider.request({ method: 'eth_requestAccounts' });
-        if (accounts && accounts[0]) {
-          setConnectingProvider(null);
-          setSuccessProvider(id);
-          setTimeout(() => {
-            onConnect(accounts[0]);
-          }, 600);
-          return;
-        }
-      }
-    } catch (err: any) {
-      console.warn('Web3 extension connection notice:', err);
-      // Fallback gracefully if extension popup is closed or blocked in iframe preview
-    }
-
-    // Safe Non-Custodial EVM connection fallback
-    setTimeout(() => {
-      setConnectingProvider(null);
+      const realAddress = await connectWeb3Account(id);
       setSuccessProvider(id);
+      setConnectingProvider(null);
       setTimeout(() => {
-        onConnect();
-      }, 700);
-    }, 850);
+        onConnect(realAddress);
+      }, 500);
+    } catch (err: any) {
+      setConnectingProvider(null);
+      const msg = err.message || 'Failed to connect Web3 wallet';
+      setConnectError(msg);
+    }
   };
 
   return (
@@ -160,6 +139,16 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
             );
           })}
         </div>
+
+        {/* Error Alert */}
+        {connectError && (
+          <div className="mt-3 p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs flex items-start gap-2 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+            <div className="leading-relaxed font-mono text-[11px]">
+              {connectError}
+            </div>
+          </div>
+        )}
 
         {/* Security Footer */}
         <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400">

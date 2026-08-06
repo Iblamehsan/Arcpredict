@@ -8,6 +8,7 @@ import { LeaderboardView } from './components/LeaderboardView';
 import { INITIAL_MARKETS, INITIAL_LEADERBOARD } from './data/markets';
 import { Market, MarketCategory, UserBet } from './types';
 import { Search, Filter, Sparkles, TrendingUp, ShieldCheck, CheckCircle2, Newspaper, Radio, Zap, ArrowUpRight } from 'lucide-react';
+import { sendArcTestnetBetTransaction } from './utils/web3';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'markets' | 'mybets' | 'leaderboard'>('markets');
@@ -16,13 +17,20 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'popular' | 'ending_soon' | 'newest'>('popular');
 
-  const [walletConnected, setWalletConnected] = useState<boolean>(true);
   const [connectedAddress, setConnectedAddress] = useState<string>(() => {
     try {
       const savedAddr = localStorage.getItem('betonarc_address');
-      if (savedAddr) return savedAddr;
+      if (savedAddr && savedAddr.startsWith('0x') && savedAddr.length === 42) return savedAddr;
     } catch {}
-    return '0x7a23b109c1d0ef4890c2834b9e43df124f8b';
+    return '';
+  });
+  const [walletConnected, setWalletConnected] = useState<boolean>(() => {
+    try {
+      const savedAddr = localStorage.getItem('betonarc_address');
+      return !!(savedAddr && savedAddr.startsWith('0x') && savedAddr.length === 42);
+    } catch {
+      return false;
+    }
   });
   const [connectWalletModalOpen, setConnectWalletModalOpen] = useState<boolean>(false);
   const [pendingBetModal, setPendingBetModal] = useState<{ market: Market; outcome: 'YES' | 'NO' } | null>(null);
@@ -44,45 +52,59 @@ export default function App() {
       if (saved) {
         return JSON.parse(saved);
       }
-    } catch {
-      // fallback
-    }
-    return [
-      {
-        id: 'bet_demo_1',
-        marketId: 'btc-120k-2026',
-        marketTitle: 'Will Bitcoin surpass $120,000 before December 2026?',
-        outcome: 'YES',
-        amount: 100,
-        odds: 1.39,
-        potentialPayout: 139,
-        timestamp: 'Today, 10:15 AM',
-        txHash: '0x8f199c2a71e843b019df018247ca811b',
-        status: 'ACTIVE'
-      },
-      {
-        id: 'bet_demo_2',
-        marketId: 'arc-mainnet-launch',
-        marketTitle: 'Will Arc Protocol Mainnet launch before Q4 2026?',
-        outcome: 'YES',
-        amount: 200,
-        odds: 1.19,
-        potentialPayout: 238,
-        timestamp: 'Yesterday, 04:30 PM',
-        txHash: '0x3e421092ab7c4129b80144f81c9a12a4',
-        status: 'WON'
-      }
-    ];
+    } catch {}
+    return [];
   });
 
   const [activeBetModal, setActiveBetModal] = useState<{ market: Market; outcome: 'YES' | 'NO' } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Sync with browser window.ethereum Web3 events
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      const provider = (window as any).ethereum;
+
+      provider.request({ method: 'eth_accounts' }).then((accounts: string[]) => {
+        if (accounts && accounts[0]) {
+          setConnectedAddress(accounts[0]);
+          setWalletConnected(true);
+        }
+      }).catch(() => {});
+
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts && accounts[0]) {
+          setConnectedAddress(accounts[0]);
+          setWalletConnected(true);
+        } else {
+          setConnectedAddress('');
+          setWalletConnected(false);
+          try {
+            localStorage.removeItem('betonarc_address');
+          } catch {}
+        }
+      };
+
+      if (provider.on) {
+        provider.on('accountsChanged', handleAccountsChanged);
+      }
+
+      return () => {
+        if (provider.removeListener) {
+          provider.removeListener('accountsChanged', handleAccountsChanged);
+        }
+      };
+    }
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem('betonarc_user_bets', JSON.stringify(userBets));
       localStorage.setItem('betonarc_usdc_balance', usdcBalance.toString());
-      localStorage.setItem('betonarc_address', connectedAddress);
+      if (connectedAddress) {
+        localStorage.setItem('betonarc_address', connectedAddress);
+      } else {
+        localStorage.removeItem('betonarc_address');
+      }
     } catch (e) {
       console.error('Failed to save state to localStorage', e);
     }
@@ -100,7 +122,7 @@ export default function App() {
       triggerToast('This prediction market is already resolved and settled.');
       return;
     }
-    if (!walletConnected) {
+    if (!walletConnected || !connectedAddress) {
       setPendingBetModal({ market, outcome });
       setConnectWalletModalOpen(true);
       return;
@@ -108,23 +130,44 @@ export default function App() {
     setActiveBetModal({ market, outcome });
   };
 
-  const handleWalletConnectedSuccess = (address?: string) => {
-    const targetAddress = address || '0x7a23b109c1d0ef4890c2834b9e43df124f8b';
-    setConnectedAddress(targetAddress);
+  const handleWalletConnectedSuccess = (address: string) => {
+    if (!address) return;
+    setConnectedAddress(address);
     setWalletConnected(true);
     setConnectWalletModalOpen(false);
-    const shortAddr = targetAddress.length > 12 ? `${targetAddress.slice(0, 6)}...${targetAddress.slice(-4)}` : targetAddress;
-    triggerToast(`EVM Wallet Connected: ${shortAddr} (Arc Testnet Chain 4192)`);
+    const shortAddr = address.length > 12 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
+    triggerToast(`Real Web3 Wallet Connected: ${shortAddr} on Arc Testnet (Chain 4192)`);
     if (pendingBetModal) {
       setActiveBetModal(pendingBetModal);
       setPendingBetModal(null);
     }
   };
 
-  const handleConfirmBet = async (market: Market, outcome: 'YES' | 'NO', amount: number) => {
+  const handleDisconnectWallet = () => {
+    setWalletConnected(false);
+    setConnectedAddress('');
+    try {
+      localStorage.removeItem('betonarc_address');
+    } catch {}
+    triggerToast('Web3 Wallet Disconnected');
+  };
+
+  const handleConfirmBet = async (market: Market, outcome: 'YES' | 'NO', amount: number): Promise<string> => {
+    if (!connectedAddress) {
+      throw new Error('Please connect your Web3 wallet first.');
+    }
+
     const odds = outcome === 'YES' ? market.oddsYes : market.oddsNo;
     const potentialPayout = amount * odds;
-    const randomTxHash = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+    // Execute real Arc Testnet transaction on user's Web3 wallet
+    let txHash = '';
+    try {
+      txHash = await sendArcTestnetBetTransaction(connectedAddress, market.id, outcome, amount);
+    } catch (err: any) {
+      console.error('Arc transaction error:', err);
+      throw new Error(err.message || 'Transaction failed or was rejected in your Web3 wallet.');
+    }
 
     // Deduct balance
     setUsdcBalance(prev => Math.max(0, prev - amount));
@@ -165,12 +208,13 @@ export default function App() {
       odds,
       potentialPayout,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      txHash: randomTxHash,
+      txHash: txHash,
       status: 'ACTIVE'
     };
 
     setUserBets(prev => [newBet, ...prev]);
-    triggerToast(`Bet placed on ${outcome} for $${amount} USDC!`);
+    triggerToast(`Bet submitted on Arc Testnet! Tx Hash: ${txHash.slice(0, 10)}...`);
+    return txHash;
   };
 
   const handleEarlyResolveMarket = (marketToResolve: Market) => {

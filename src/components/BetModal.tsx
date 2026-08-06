@@ -7,7 +7,7 @@ interface BetModalProps {
   outcome: 'YES' | 'NO';
   onClose: () => void;
   usdcBalance: number;
-  onConfirmBet: (market: Market, outcome: 'YES' | 'NO', amount: number) => Promise<void>;
+  onConfirmBet: (market: Market, outcome: 'YES' | 'NO', amount: number) => Promise<string>;
 }
 
 export const BetModal: React.FC<BetModalProps> = ({
@@ -47,9 +47,8 @@ export const BetModal: React.FC<BetModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      await onConfirmBet(market, outcome, amount);
-      const randomHash = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-      setTxSuccessHash(randomHash);
+      const realTxHash = await onConfirmBet(market, outcome, amount);
+      setTxSuccessHash(realTxHash);
     } catch (err: any) {
       setErrorMessage(err.message || 'Transaction failed on Arc Testnet');
     } finally {
