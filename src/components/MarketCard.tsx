@@ -44,9 +44,10 @@ export const MarketCard: React.FC<MarketCardProps> = ({ market, onPlaceBet, onEa
     const min = Math.min(...history) - 5;
     const max = Math.max(...history) + 5;
     const range = max - min || 1;
+    const denominator = history.length > 1 ? history.length - 1 : 1;
 
     return history.map((val, idx) => {
-      const x = (idx / (history.length - 1)) * width;
+      const x = (idx / denominator) * width;
       const y = height - ((val - min) / range) * height;
       return `${idx === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
     }).join(' ');
