@@ -1,5 +1,5 @@
-import React from 'react';
-import { Wallet, ExternalLink, Droplets, Trophy, LayoutGrid, Receipt, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Wallet, Trophy, LayoutGrid, Receipt, Menu, X, ChevronDown } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'markets' | 'mybets' | 'leaderboard';
@@ -7,9 +7,8 @@ interface HeaderProps {
   walletConnected: boolean;
   setWalletConnected: (connected: boolean) => void;
   usdcBalance: number;
-  arcBalance: number;
-  onOpenFaucet: () => void;
   activeBetsCount: number;
+  connectedAddress?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,12 +17,20 @@ export const Header: React.FC<HeaderProps> = ({
   walletConnected,
   setWalletConnected,
   usdcBalance,
-  arcBalance,
-  onOpenFaucet,
   activeBetsCount,
+  connectedAddress,
 }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const displayAddress = connectedAddress
+    ? (connectedAddress.length > 12
+        ? `${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)}`
+        : connectedAddress)
+    : '0x7a...4f8b';
+
+
   return (
-    <header className="sticky top-0 z-40 w-full glass-panel border-b border-amber-500/20 bg-[#030712]/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full glass-panel border-b border-amber-500/20 bg-[#030712]/95 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           
@@ -76,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
           </div>
 
-          {/* Center Navigation Tabs */}
+          {/* Desktop Center Navigation Tabs */}
           <nav className="hidden md:flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
             <button
               onClick={() => setActiveTab('markets')}
@@ -120,17 +127,8 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </nav>
 
-          {/* Right Wallet Controls */}
+          {/* Right Controls & Top Right Menu */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Faucet Trigger */}
-            <button
-              onClick={onOpenFaucet}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-500/40 text-cyan-300 hover:text-cyan-200 rounded-lg text-xs font-semibold transition-all"
-              title="Get Testnet Tokens"
-            >
-              <Droplets className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden sm:inline">Faucet</span>
-            </button>
 
             {walletConnected ? (
               <div className="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 p-1 pl-2.5 rounded-xl">
@@ -138,8 +136,8 @@ export const Header: React.FC<HeaderProps> = ({
                   <div className="text-xs font-mono font-bold text-amber-400">
                     {usdcBalance.toLocaleString()} USDC
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400">
-                    {arcBalance.toFixed(2)} ARC
+                  <div className="text-[10px] font-mono text-emerald-400">
+                    Arc Testnet (4192)
                   </div>
                 </div>
                 <button
@@ -148,57 +146,105 @@ export const Header: React.FC<HeaderProps> = ({
                   title="Click to disconnect"
                 >
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  0x7a...4f8b
+                  {displayAddress}
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setWalletConnected(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold rounded-xl text-xs sm:text-sm shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-all transform active:scale-95"
+                className="flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold rounded-xl text-xs sm:text-sm shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-all transform active:scale-95"
               >
                 <Wallet className="w-4 h-4" />
-                Connect Wallet
+                <span>Connect Wallet</span>
               </button>
             )}
+
+            {/* TOP RIGHT MENU TOGGLE BUTTON */}
+            <button
+              onClick={() => setMobileMenuOpen(prev => !prev)}
+              className="p-2 rounded-xl bg-slate-900/90 border border-amber-500/30 text-amber-400 hover:text-amber-300 hover:bg-slate-800 transition-colors flex items-center gap-1.5"
+              aria-label="Toggle navigation menu"
+              title="Menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <span className="hidden sm:inline text-xs font-bold font-mono">Menu</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${mobileMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
           </div>
 
         </div>
 
-        {/* Mobile Navigation Row */}
-        <div className="flex md:hidden items-center justify-around py-2 border-t border-slate-800/80">
-          <button
-            onClick={() => setActiveTab('markets')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
-              activeTab === 'markets' ? 'text-amber-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5" />
-            Markets
-          </button>
-          <button
-            onClick={() => setActiveTab('mybets')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold relative ${
-              activeTab === 'mybets' ? 'text-amber-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            <Receipt className="w-3.5 h-3.5" />
-            My Bets
-            {activeBetsCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500 text-black font-extrabold">
-                {activeBetsCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('leaderboard')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ${
-              activeTab === 'leaderboard' ? 'text-amber-400 font-bold' : 'text-slate-400'
-            }`}
-          >
-            <Trophy className="w-3.5 h-3.5" />
-            Leaderboard
-          </button>
-        </div>
+        {/* TOP RIGHT DROPDOWN MENU */}
+        {mobileMenuOpen && (
+          <div className="py-4 border-t border-slate-800/80 bg-slate-950/95 rounded-b-2xl px-2 mb-2 animate-fadeIn shadow-2xl">
+            <div className="grid grid-cols-1 gap-1.5">
+              <button
+                onClick={() => {
+                  setActiveTab('markets');
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all ${
+                  activeTab === 'markets'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'text-slate-300 hover:bg-slate-900'
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <LayoutGrid className="w-4 h-4 text-amber-400" />
+                  Explore Prediction Markets
+                </span>
+                <span className="text-xs text-slate-500 font-mono">Live</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('mybets');
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all ${
+                  activeTab === 'mybets'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'text-slate-300 hover:bg-slate-900'
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <Receipt className="w-4 h-4 text-amber-400" />
+                  My Bets & Positions
+                </span>
+                {activeBetsCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-black">
+                    {activeBetsCount}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  setActiveTab('leaderboard');
+                  setMobileMenuOpen(false);
+                }}
+                className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all ${
+                  activeTab === 'leaderboard'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'text-slate-300 hover:bg-slate-900'
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <Trophy className="w-4 h-4 text-amber-400" />
+                  Trader Leaderboard
+                </span>
+              </button>
+
+              {walletConnected && (
+                <div className="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between px-3 text-xs font-mono text-slate-400">
+                  <span>Balance: <strong className="text-amber-400">{usdcBalance.toLocaleString()} USDC</strong></span>
+                  <span>Network: <strong className="text-emerald-400">Arc Testnet (4192)</strong></span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </header>

@@ -211,8 +211,8 @@ export const BetModal: React.FC<BetModalProps> = ({
 
             {/* Network Fee note */}
             <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
-              <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-amber-400" /> Arc Network Gas:</span>
-              <span className="text-slate-300">~0.001 ARC</span>
+              <span className="flex items-center gap-1"><Zap className="w-3 h-3 text-amber-400" /> Arc Testnet Gas (Native):</span>
+              <span className="text-emerald-400 font-bold">&lt; 0.01 USDC</span>
             </div>
 
             {errorMessage && (

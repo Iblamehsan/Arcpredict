@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { MarketCard } from './components/MarketCard';
 import { BetModal } from './components/BetModal';
+import { ConnectWalletModal } from './components/ConnectWalletModal';
 import { MyBetsView } from './components/MyBetsView';
 import { LeaderboardView } from './components/LeaderboardView';
-import { FaucetModal } from './components/FaucetModal';
 import { INITIAL_MARKETS, INITIAL_LEADERBOARD } from './data/markets';
 import { Market, MarketCategory, UserBet } from './types';
 import { Search, Filter, Sparkles, TrendingUp, ShieldCheck, CheckCircle2 } from 'lucide-react';
@@ -16,30 +16,76 @@ export default function App() {
   const [sortBy, setSortBy] = useState<'popular' | 'ending_soon' | 'newest'>('popular');
 
   const [walletConnected, setWalletConnected] = useState<boolean>(true);
-  const [usdcBalance, setUsdcBalance] = useState<number>(2500);
-  const [arcBalance, setArcBalance] = useState<number>(12.50);
+  const [connectedAddress, setConnectedAddress] = useState<string>(() => {
+    try {
+      const savedAddr = localStorage.getItem('betonarc_address');
+      if (savedAddr) return savedAddr;
+    } catch {}
+    return '0x7a23b109c1d0ef4890c2834b9e43df124f8b';
+  });
+  const [connectWalletModalOpen, setConnectWalletModalOpen] = useState<boolean>(false);
+  const [pendingBetModal, setPendingBetModal] = useState<{ market: Market; outcome: 'YES' | 'NO' } | null>(null);
+
+  const [usdcBalance, setUsdcBalance] = useState<number>(() => {
+    try {
+      const savedBal = localStorage.getItem('betonarc_usdc_balance');
+      if (savedBal !== null && savedBal !== undefined) {
+        return parseFloat(savedBal);
+      }
+    } catch {}
+    return 2500;
+  });
 
   const [markets, setMarkets] = useState<Market[]>(INITIAL_MARKETS);
   const [userBets, setUserBets] = useState<UserBet[]>(() => {
     try {
       const saved = localStorage.getItem('betonarc_user_bets');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        return JSON.parse(saved);
+      }
     } catch {
-      return [];
+      // fallback
     }
+    return [
+      {
+        id: 'bet_demo_1',
+        marketId: 'btc-120k-2026',
+        marketTitle: 'Will Bitcoin surpass $120,000 before December 2026?',
+        outcome: 'YES',
+        amount: 100,
+        odds: 1.39,
+        potentialPayout: 139,
+        timestamp: 'Today, 10:15 AM',
+        txHash: '0x8f199c2a71e843b019df018247ca811b',
+        status: 'ACTIVE'
+      },
+      {
+        id: 'bet_demo_2',
+        marketId: 'arc-mainnet-launch',
+        marketTitle: 'Will Arc Protocol Mainnet launch before Q4 2026?',
+        outcome: 'YES',
+        amount: 200,
+        odds: 1.19,
+        potentialPayout: 238,
+        timestamp: 'Yesterday, 04:30 PM',
+        txHash: '0x3e421092ab7c4129b80144f81c9a12a4',
+        status: 'WON'
+      }
+    ];
   });
 
   const [activeBetModal, setActiveBetModal] = useState<{ market: Market; outcome: 'YES' | 'NO' } | null>(null);
-  const [faucetModalOpen, setFaucetModalOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     try {
       localStorage.setItem('betonarc_user_bets', JSON.stringify(userBets));
+      localStorage.setItem('betonarc_usdc_balance', usdcBalance.toString());
+      localStorage.setItem('betonarc_address', connectedAddress);
     } catch (e) {
-      console.error('Failed to save bets', e);
+      console.error('Failed to save state to localStorage', e);
     }
-  }, [userBets]);
+  }, [userBets, usdcBalance, connectedAddress]);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -50,9 +96,24 @@ export default function App() {
 
   const handleOpenBetModal = (market: Market, outcome: 'YES' | 'NO') => {
     if (!walletConnected) {
-      setWalletConnected(true);
+      setPendingBetModal({ market, outcome });
+      setConnectWalletModalOpen(true);
+      return;
     }
     setActiveBetModal({ market, outcome });
+  };
+
+  const handleWalletConnectedSuccess = (address?: string) => {
+    const targetAddress = address || '0x7a23b109c1d0ef4890c2834b9e43df124f8b';
+    setConnectedAddress(targetAddress);
+    setWalletConnected(true);
+    setConnectWalletModalOpen(false);
+    const shortAddr = targetAddress.length > 12 ? `${targetAddress.slice(0, 6)}...${targetAddress.slice(-4)}` : targetAddress;
+    triggerToast(`EVM Wallet Connected: ${shortAddr} (Arc Testnet Chain 4192)`);
+    if (pendingBetModal) {
+      setActiveBetModal(pendingBetModal);
+      setPendingBetModal(null);
+    }
   };
 
   const handleConfirmBet = async (market: Market, outcome: 'YES' | 'NO', amount: number) => {
@@ -62,15 +123,28 @@ export default function App() {
 
     // Deduct balance
     setUsdcBalance(prev => Math.max(0, prev - amount));
-    setArcBalance(prev => Math.max(0, prev - 0.001));
+
+    // Dynamically calculate probability shift based on stake amount
+    const deltaProb = Math.max(1, Math.min(5, Math.round(amount / 50)));
+    const shift = outcome === 'YES' ? deltaProb : -deltaProb;
+    const currentProb = market.probYes;
+    const newProb = Math.max(1, Math.min(99, currentProb + shift));
+
+    // Recalculate odds based on exact formula
+    const newOddsYes = Number((100 / newProb).toFixed(2));
+    const newOddsNo = Number((100 / (100 - newProb)).toFixed(2));
 
     // Update market statistics smoothly
     setMarkets(prev => prev.map(m => {
       if (m.id === market.id) {
         return {
           ...m,
+          probYes: newProb,
+          oddsYes: newOddsYes,
+          oddsNo: newOddsNo,
           liquidityUsdc: m.liquidityUsdc + amount,
-          totalBetsCount: m.totalBetsCount + 1
+          totalBetsCount: m.totalBetsCount + 1,
+          history: [...m.history, newProb]
         };
       }
       return m;
@@ -94,12 +168,6 @@ export default function App() {
     triggerToast(`Bet placed on ${outcome} for $${amount} USDC!`);
   };
 
-  const handleClaimFaucetTokens = (addedUsdc: number, addedArc: number) => {
-    setUsdcBalance(prev => prev + addedUsdc);
-    setArcBalance(prev => prev + addedArc);
-    triggerToast(`Faucet claimed: +${addedUsdc} USDC & +${addedArc} ARC`);
-  };
-
   const handleClaimWinnings = (betId: string) => {
     const bet = userBets.find(b => b.id === betId);
     if (!bet) return;
@@ -114,13 +182,19 @@ export default function App() {
 
   const filteredMarkets = markets.filter(market => {
     const matchesCategory = selectedCategory === 'All' || market.category === selectedCategory;
-    const matchesSearch = searchQuery === '' || 
-      market.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      market.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = query === '' || 
+      market.title.toLowerCase().includes(query) ||
+      market.category.toLowerCase().includes(query) ||
+      market.resolutionSource.toLowerCase().includes(query);
     return matchesCategory && matchesSearch;
   }).sort((a, b) => {
     if (sortBy === 'popular') return b.totalBetsCount - a.totalBetsCount;
-    if (sortBy === 'ending_soon') return a.endDate.localeCompare(b.endDate);
+    if (sortBy === 'ending_soon') {
+      const dateA = new Date(a.endDate).getTime() || 0;
+      const dateB = new Date(b.endDate).getTime() || 0;
+      return dateA - dateB;
+    }
     return 0;
   });
 
@@ -134,12 +208,19 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         walletConnected={walletConnected}
-        setWalletConnected={setWalletConnected}
+        setWalletConnected={(connected) => {
+          if (connected) {
+            setConnectWalletModalOpen(true);
+          } else {
+            setWalletConnected(false);
+            triggerToast('Wallet disconnected');
+          }
+        }}
         usdcBalance={usdcBalance}
-        arcBalance={arcBalance}
-        onOpenFaucet={() => setFaucetModalOpen(true)}
         activeBetsCount={activeBetsCount}
+        connectedAddress={connectedAddress}
       />
+
 
       {/* Toast Notification */}
       {toastMessage && (
@@ -264,6 +345,8 @@ export default function App() {
         {activeTab === 'mybets' && (
           <MyBetsView
             userBets={userBets}
+            walletConnected={walletConnected}
+            onConnectWallet={() => setConnectWalletModalOpen(true)}
             onClaimWinnings={handleClaimWinnings}
             onExploreMarkets={() => setActiveTab('markets')}
           />
@@ -275,6 +358,18 @@ export default function App() {
 
       </main>
 
+      {/* Connect Wallet Modal */}
+      {connectWalletModalOpen && (
+        <ConnectWalletModal
+          onClose={() => {
+            setConnectWalletModalOpen(false);
+            setPendingBetModal(null);
+          }}
+          onConnect={handleWalletConnectedSuccess}
+          reason={pendingBetModal ? "You must connect your Web3 wallet before placing a prediction bet." : undefined}
+        />
+      )}
+
       {/* Bet Modal */}
       {activeBetModal && (
         <BetModal
@@ -283,14 +378,6 @@ export default function App() {
           onClose={() => setActiveBetModal(null)}
           usdcBalance={usdcBalance}
           onConfirmBet={handleConfirmBet}
-        />
-      )}
-
-      {/* Faucet Modal */}
-      {faucetModalOpen && (
-        <FaucetModal
-          onClose={() => setFaucetModalOpen(false)}
-          onClaimFaucetTokens={handleClaimFaucetTokens}
         />
       )}
 
