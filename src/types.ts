@@ -14,6 +14,30 @@ export interface Market {
   featured?: boolean;
   resolutionSource: string;
   history: number[]; // 7 points representing probability trend 0-100
+  // Automated Early Resolution Fields
+  status?: 'active' | 'resolved';
+  winningOutcome?: 'YES' | 'NO';
+  resolvedAt?: string;
+  resolutionHeadline?: string;
+  resolutionTxHash?: string;
+  newsTrigger?: {
+    headline: string;
+    source: string;
+    time: string;
+    outcome: 'YES' | 'NO';
+  };
+}
+
+export interface NewsAnnouncement {
+  id: string;
+  marketId: string;
+  marketTitle: string;
+  headline: string;
+  source: string;
+  timestamp: string;
+  outcome: 'YES' | 'NO';
+  txHash: string;
+  isResolved: boolean;
 }
 
 export interface UserBet {
@@ -37,3 +61,4 @@ export interface LeaderboardUser {
   profitUsdc: number;
   winRate: string;
 }
+

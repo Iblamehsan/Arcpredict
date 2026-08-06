@@ -7,11 +7,12 @@ import { MyBetsView } from './components/MyBetsView';
 import { LeaderboardView } from './components/LeaderboardView';
 import { INITIAL_MARKETS, INITIAL_LEADERBOARD } from './data/markets';
 import { Market, MarketCategory, UserBet } from './types';
-import { Search, Filter, Sparkles, TrendingUp, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Search, Filter, Sparkles, TrendingUp, ShieldCheck, CheckCircle2, Newspaper, Radio, Zap, ArrowUpRight } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'markets' | 'mybets' | 'leaderboard'>('markets');
   const [selectedCategory, setSelectedCategory] = useState<MarketCategory>('All');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'resolved'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'popular' | 'ending_soon' | 'newest'>('popular');
 
@@ -91,10 +92,14 @@ export default function App() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 4000);
+    }, 5000);
   };
 
   const handleOpenBetModal = (market: Market, outcome: 'YES' | 'NO') => {
+    if (market.status === 'resolved') {
+      triggerToast('This prediction market is already resolved and settled.');
+      return;
+    }
     if (!walletConnected) {
       setPendingBetModal({ market, outcome });
       setConnectWalletModalOpen(true);
@@ -168,6 +173,68 @@ export default function App() {
     triggerToast(`Bet placed on ${outcome} for $${amount} USDC!`);
   };
 
+  const handleEarlyResolveMarket = (marketToResolve: Market) => {
+    if (marketToResolve.status === 'resolved') return;
+
+    const winningOutcome = marketToResolve.newsTrigger?.outcome || 'YES';
+    const randomTxHash = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const nowTime = new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+
+    // Update market state
+    setMarkets(prev => prev.map(m => {
+      if (m.id === marketToResolve.id) {
+        return {
+          ...m,
+          status: 'resolved',
+          winningOutcome: winningOutcome,
+          resolvedAt: nowTime,
+          resolutionHeadline: m.newsTrigger?.headline || 'Official Press Release Verified',
+          resolutionTxHash: randomTxHash,
+          probYes: winningOutcome === 'YES' ? 100 : 0,
+          oddsYes: winningOutcome === 'YES' ? 1.00 : 0,
+          oddsNo: winningOutcome === 'NO' ? 1.00 : 0,
+          history: [...m.history, winningOutcome === 'YES' ? 100 : 0]
+        };
+      }
+      return m;
+    }));
+
+    // Update user bets state for this market
+    let totalWonPayout = 0;
+    let wonCount = 0;
+
+    setUserBets(prev => prev.map(bet => {
+      if (bet.marketId === marketToResolve.id && bet.status === 'ACTIVE') {
+        if (bet.outcome === winningOutcome) {
+          totalWonPayout += bet.potentialPayout;
+          wonCount++;
+          return { ...bet, status: 'WON' };
+        } else {
+          return { ...bet, status: 'LOST' };
+        }
+      }
+      return bet;
+    }));
+
+    if (wonCount > 0) {
+      triggerToast(`EARLY RESOLUTION: Official News verified! ${winningOutcome} WINS! You have ${wonCount} winning position(s) claimable ($${totalWonPayout.toFixed(2)} USDC)!`);
+    } else {
+      triggerToast(`EARLY RESOLUTION: Official News verified! Market resolved ${winningOutcome} on Arc Testnet.`);
+    }
+  };
+
+  const handleAutoResolveAllWithNews = () => {
+    const activeWithNews = markets.filter(m => m.status !== 'resolved' && m.newsTrigger);
+    if (activeWithNews.length === 0) {
+      triggerToast('All news-eligible markets are currently resolved.');
+      return;
+    }
+
+    activeWithNews.forEach(m => {
+      handleEarlyResolveMarket(m);
+    });
+  };
+
   const handleClaimWinnings = (betId: string) => {
     const bet = userBets.find(b => b.id === betId);
     if (!bet) return;
@@ -182,12 +249,19 @@ export default function App() {
 
   const filteredMarkets = markets.filter(market => {
     const matchesCategory = selectedCategory === 'All' || market.category === selectedCategory;
+    const matchesStatus = 
+      statusFilter === 'all' ? true :
+      statusFilter === 'active' ? (market.status !== 'resolved') :
+      (market.status === 'resolved');
+
     const query = searchQuery.toLowerCase().trim();
     const matchesSearch = query === '' || 
       market.title.toLowerCase().includes(query) ||
       market.category.toLowerCase().includes(query) ||
-      market.resolutionSource.toLowerCase().includes(query);
-    return matchesCategory && matchesSearch;
+      market.resolutionSource.toLowerCase().includes(query) ||
+      (market.resolutionHeadline && market.resolutionHeadline.toLowerCase().includes(query));
+
+    return matchesCategory && matchesStatus && matchesSearch;
   }).sort((a, b) => {
     if (sortBy === 'popular') return b.totalBetsCount - a.totalBetsCount;
     if (sortBy === 'ending_soon') {
@@ -199,6 +273,7 @@ export default function App() {
   });
 
   const activeBetsCount = userBets.filter(b => b.status === 'ACTIVE').length;
+  const activeWithNewsCount = markets.filter(m => m.status !== 'resolved' && m.newsTrigger).length;
 
   return (
     <div className="min-h-screen bg-[#030712] text-gray-100 flex flex-col font-sans">
@@ -224,8 +299,8 @@ export default function App() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 rounded-xl shadow-2xl backdrop-blur-md animate-bounce text-xs font-mono font-bold">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-amber-950/90 border border-amber-500/80 text-amber-100 rounded-xl shadow-2xl backdrop-blur-md animate-bounce text-xs font-mono font-bold max-w-md">
+          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -240,7 +315,7 @@ export default function App() {
           <div className="relative z-10 max-w-3xl space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono">
               <Sparkles className="w-3.5 h-3.5" />
-              Decentralized Arc Testnet Oracle
+              Decentralized Arc Testnet Prediction Protocol
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-extrabold text-white font-display tracking-tight leading-tight">
@@ -248,13 +323,13 @@ export default function App() {
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
-              Place non-custodial prediction bets across Crypto, AI, Sports, Macro, and World Events. Instant settlements with transparent oracle resolution on Arc.
+              Place non-custodial prediction bets across Crypto, AI, Sports, Macro, and World Events. Instant settlements with transparent oracle resolution on Arc Testnet.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-mono text-slate-400">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Zero Slashing Oracles</span>
+                <span>Non-Custodial Arc Chain ID 4192</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="w-4 h-4 text-amber-400" />
@@ -271,15 +346,42 @@ export default function App() {
             {/* Filter Controls Bar */}
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 glass-card p-3.5 rounded-2xl border border-slate-800">
               
-              {/* Category Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 lg:pb-0 scrollbar-none">
+              {/* Category & Status Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 mr-2">
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
+                      statusFilter === 'all' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    All ({markets.length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('active')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
+                      statusFilter === 'active' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Active ({markets.filter(m => m.status !== 'resolved').length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('resolved')}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold font-mono transition-all ${
+                      statusFilter === 'resolved' ? 'bg-emerald-500 text-black' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Resolved ({markets.filter(m => m.status === 'resolved').length})
+                  </button>
+                </div>
+
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                       selectedCategory === cat
-                        ? 'bg-amber-500 text-black shadow-md shadow-amber-500/20 font-bold'
+                        ? 'bg-slate-800 text-amber-400 border border-amber-500/40 font-bold'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
                     }`}
                   >
@@ -296,7 +398,7 @@ export default function App() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search prediction markets..."
+                    placeholder="Search prediction markets or headlines..."
                     className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500/60 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
                   />
                 </div>
@@ -321,7 +423,7 @@ export default function App() {
               <div className="text-center py-16 glass-card rounded-2xl p-8 border border-slate-800">
                 <p className="text-slate-400 text-sm">No prediction markets match your filter criteria.</p>
                 <button
-                  onClick={() => { setSelectedCategory('All'); setSearchQuery(''); }}
+                  onClick={() => { setSelectedCategory('All'); setStatusFilter('all'); setSearchQuery(''); }}
                   className="mt-3 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-400 rounded-xl"
                 >
                   Clear Filters
@@ -334,6 +436,7 @@ export default function App() {
                     key={market.id}
                     market={market}
                     onPlaceBet={handleOpenBetModal}
+                    onEarlyResolve={handleEarlyResolveMarket}
                   />
                 ))}
               </div>
@@ -386,7 +489,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
           <div className="flex items-center gap-2">
             <span className="font-bold text-white">BETONARC</span>
-            <span>• Arc Testnet Non-Custodial Prediction Protocol</span>
+            <span>• Arc Testnet Non-Custodial Automated Prediction Protocol</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -405,3 +508,4 @@ export default function App() {
     </div>
   );
 }
+
