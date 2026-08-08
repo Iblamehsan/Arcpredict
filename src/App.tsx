@@ -8,7 +8,7 @@ import { LeaderboardView } from './components/LeaderboardView';
 import { INITIAL_MARKETS, INITIAL_LEADERBOARD } from './data/markets';
 import { Market, MarketCategory, UserBet } from './types';
 import { Search, Filter, Sparkles, TrendingUp, ShieldCheck, CheckCircle2, Newspaper, Radio, Zap, ArrowUpRight } from 'lucide-react';
-import { sendArcTestnetBetTransaction } from './utils/web3';
+import { sendArcTestnetBetTransaction, fetchRealArcBalance } from './utils/web3';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'markets' | 'mybets' | 'leaderboard'>('markets');
@@ -35,15 +35,20 @@ export default function App() {
   const [connectWalletModalOpen, setConnectWalletModalOpen] = useState<boolean>(false);
   const [pendingBetModal, setPendingBetModal] = useState<{ market: Market; outcome: 'YES' | 'NO' } | null>(null);
 
-  const [usdcBalance, setUsdcBalance] = useState<number>(() => {
-    try {
-      const savedBal = localStorage.getItem('betonarc_usdc_balance');
-      if (savedBal !== null && savedBal !== undefined) {
-        return parseFloat(savedBal);
-      }
-    } catch {}
-    return 2500;
-  });
+  const [usdcBalance, setUsdcBalance] = useState<number>(0);
+
+  // Fetch real on-chain balance when connected address changes
+  useEffect(() => {
+    if (connectedAddress) {
+      fetchRealArcBalance(connectedAddress).then(bal => {
+        setUsdcBalance(bal);
+      }).catch(err => {
+        console.warn('Failed to fetch on-chain balance:', err);
+      });
+    } else {
+      setUsdcBalance(0);
+    }
+  }, [connectedAddress]);
 
   const [markets, setMarkets] = useState<Market[]>(INITIAL_MARKETS);
   const [userBets, setUserBets] = useState<UserBet[]>(() => {
@@ -169,8 +174,12 @@ export default function App() {
       throw new Error(err.message || 'Transaction failed or was rejected in your Web3 wallet.');
     }
 
-    // Deduct balance
-    setUsdcBalance(prev => Math.max(0, prev - amount));
+    // Refresh real balance from on-chain after transaction
+    setTimeout(() => {
+      if (connectedAddress) {
+        fetchRealArcBalance(connectedAddress).then(bal => setUsdcBalance(bal)).catch(() => {});
+      }
+    }, 2500);
 
     // Dynamically calculate probability shift based on stake amount
     const deltaProb = Math.max(1, Math.min(5, Math.round(amount / 50)));

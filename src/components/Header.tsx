@@ -134,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center gap-2 bg-slate-900/90 border border-amber-500/30 p-1 pl-2.5 rounded-xl">
                 <div className="text-right hidden sm:block">
                   <div className="text-xs font-mono font-bold text-amber-400">
-                    {usdcBalance.toLocaleString()} USDC
+                    {usdcBalance > 0 ? `${usdcBalance.toFixed(4)} ARC` : '0.0000 ARC'}
                   </div>
                   <div className="text-[10px] font-mono text-emerald-400">
                     Arc Testnet (4192)
@@ -238,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({
 
               {walletConnected && (
                 <div className="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between px-3 text-xs font-mono text-slate-400">
-                  <span>Balance: <strong className="text-amber-400">{usdcBalance.toLocaleString()} USDC</strong></span>
+                  <span>Balance: <strong className="text-amber-400">{usdcBalance.toFixed(4)} ARC</strong></span>
                   <span>Network: <strong className="text-emerald-400">Arc Testnet (4192)</strong></span>
                 </div>
               )}

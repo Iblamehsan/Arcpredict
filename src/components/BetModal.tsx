@@ -149,40 +149,42 @@ export const BetModal: React.FC<BetModalProps> = ({
             {/* Stake Input */}
             <div>
               <div className="flex justify-between items-center text-xs text-slate-400 mb-1 font-mono">
-                <span>Amount (USDC)</span>
-                <span>Balance: <strong className="text-amber-400">{usdcBalance.toLocaleString()} USDC</strong></span>
+                <span>Amount (ARC / USDC)</span>
+                <span>Wallet Balance: <strong className="text-amber-400">{usdcBalance.toFixed(4)} ARC</strong></span>
               </div>
 
               <div className="relative">
                 <input
                   type="number"
-                  min="1"
-                  max={usdcBalance}
+                  min="0.001"
+                  step="any"
                   value={amount || ''}
                   onChange={(e) => setAmount(Number(e.target.value))}
                   placeholder="Enter stake amount..."
                   className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl py-2.5 px-3.5 text-white font-mono text-sm focus:outline-none transition-colors"
                 />
-                <span className="absolute right-3 top-2.5 text-xs font-mono text-slate-400 font-bold">USDC</span>
+                <span className="absolute right-3 top-2.5 text-xs font-mono text-slate-400 font-bold">ARC</span>
               </div>
 
               {/* Presets */}
               <div className="flex gap-2 mt-2">
-                {[25, 50, 100, 250, 500].map((preset) => (
+                {[1, 5, 10, 50, 100].map((preset) => (
                   <button
                     key={preset}
                     onClick={() => handleQuickPreset(preset)}
                     className="flex-1 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-[11px] font-mono text-slate-300 transition-colors"
                   >
-                    ${preset}
+                    {preset} ARC
                   </button>
                 ))}
-                <button
-                  onClick={() => handleQuickPreset(usdcBalance)}
-                  className="flex-1 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg text-[11px] font-mono text-amber-400 font-bold transition-colors"
-                >
-                  MAX
-                </button>
+                {usdcBalance > 0 && (
+                  <button
+                    onClick={() => handleQuickPreset(Number(usdcBalance.toFixed(4)))}
+                    className="flex-1 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg text-[11px] font-mono text-amber-400 font-bold transition-colors"
+                  >
+                    MAX
+                  </button>
+                )}
               </div>
             </div>
 
